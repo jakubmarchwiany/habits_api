@@ -1,12 +1,18 @@
 import { NextFunction, Request, Response } from "express";
 import { verify } from "jsonwebtoken";
 import WrongAuthenticationTokenException from "./exceptions/wrong_authentication_token";
+import { DataStoredInToken } from "../models/data_stored_in_token";
 
 const { JWT_SECRET } = process.env;
 
-function authMiddleware(request: Request, response: Response, next: NextFunction) {
+export type ReqUser = { user: DataStoredInToken };
+
+function authMiddleware(
+    request: Request & { user?: DataStoredInToken },
+    response: Response,
+    next: NextFunction
+) {
     const bearerHeader = request.headers["authorization"];
-    console.log(bearerHeader);
     if (bearerHeader) {
         const bearer = bearerHeader.substring(7);
         try {
@@ -14,6 +20,7 @@ function authMiddleware(request: Request, response: Response, next: NextFunction
                 if (err) {
                     next(new WrongAuthenticationTokenException());
                 } else {
+                    request.user = decoded as DataStoredInToken;
                     return next();
                 }
             });

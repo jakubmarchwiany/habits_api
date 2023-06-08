@@ -4,8 +4,9 @@ import { USERS } from "../data/users";
 import Controller from "../interfaces/controller-interface";
 import catchError from "../middleware/catch-error";
 import WrongCredentialsException from "../middleware/exceptions/wrong-credentials-exception";
-import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login-user-schema";
+import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login_user_schema";
 import validate from "../middleware/validate";
+import { DataStoredInToken } from "../models/data_stored_in_token";
 
 const { JWT_SECRET, TOKEN_EXPIRE_AFTER } = process.env;
 
@@ -32,7 +33,12 @@ class AuthenticationController implements Controller {
             if (element.username == username) {
                 if (element.password == password) {
                     const expiresIn = parseInt(TOKEN_EXPIRE_AFTER!);
-                    const tokenData = jwt.sign({}, JWT_SECRET!, { expiresIn });
+
+                    const dataStoredInToken: DataStoredInToken = {
+                        name: username,
+                    };
+
+                    const tokenData = jwt.sign(dataStoredInToken, JWT_SECRET!, { expiresIn });
 
                     res.send({
                         token: tokenData,

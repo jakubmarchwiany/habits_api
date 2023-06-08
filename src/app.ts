@@ -1,8 +1,8 @@
 import "dotenv/config";
-import AuthenticationController from "./controllers/auth";
+import AuthenticationController from "./controllers/auth_controller";
 import Server from "./server";
 import validateEnv from "./utils/validate_env";
-import HabitController from "./controllers/habit";
+import HabitController from "./controllers/habit_controller";
 
 validateEnv();
 
