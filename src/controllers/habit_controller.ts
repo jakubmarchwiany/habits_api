@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import uniqid from "uniqid";
 import Controller from "../interfaces/controller_interface";
 import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
@@ -7,7 +8,8 @@ import addActivitySchema, {
 } from "../middleware/schemas/habit/add_activity_schema";
 import addHabitSchema, { AddHabitData } from "../middleware/schemas/habit/add_habit_schema";
 import validate from "../middleware/validate";
-import { Habit, UserData } from "../models/user";
+import { Habit } from "../models/habit";
+import { UserData } from "../models/user_data";
 import { getUserDataFromJson, saveUserDataToJson } from "../utils/json_manager";
 
 class HabitController implements Controller {
@@ -61,13 +63,13 @@ class HabitController implements Controller {
         req: Request<never, never, AddHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { name, steps } = req.body;
+        const { name } = req.body;
         const { userName } = req.user;
         const userData = userName == "kuba" ? this.kubaData : this.juliaData;
 
         const newHabit: Habit = {
+            id: uniqid(),
             name,
-            steps,
             activities: [],
         };
 
@@ -75,110 +77,54 @@ class HabitController implements Controller {
 
         saveUserDataToJson(userName, userData);
 
-        res.send({ message: "Udało się dodać nawyk" });
+        res.send({ message: "Udało się dodać nawyk", data: newHabit });
     };
 
     private addActivity = async (
         req: Request<never, never, AddActivityData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { habitName, date } = req.body;
+        const { id, date } = req.body;
         const { userName } = req.user;
         const userData = userName == "kuba" ? this.kubaData : this.juliaData;
-        console.log(date)
-        const habit = this.findHabit(userData, habitName)!;
 
-        const { steps, activities } = habit;
+        const habit = this.findHabitByID(id, userData.habits)!;
+        const index = this.findRightIndexByDate(date, habit.activities);
 
-        if (steps === 1) {
-            this.addActivitySorted(activities, `${date}`, false);
-        } else {
-            this.addStepToActivity(activities, `${date}`, steps);
-        }
+        habit.activities.splice(index, 0, date);
 
         saveUserDataToJson(userName, userData);
-
-        res.send({ message: "Udało się dodać aktywność", data: userData });
-    };
-
-    private addStepToActivity = (activities: [string, number?][], date: string, steps: number) => {
-        const index = this.findActivityIndex(activities, `${date}`);
-
-        if (index === -1) {
-            this.addActivitySorted(activities, date, true);
-        } else {
-            if (activities[index][1]! == steps - 1) {
-                activities[index] = [`${date}`];
-            } else {
-                activities[index][1]!++;
-            }
-        }
+        res.send({ message: "Udało się dodać aktywność" });
     };
 
     private deleteActivity = async (
         req: Request<never, never, AddActivityData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { habitName, date } = req.body;
+        const { id, date } = req.body;
         const { userName } = req.user;
         const userData = userName == "kuba" ? this.kubaData : this.juliaData;
-        const habit = this.findHabit(userData, habitName)!;
-        const { steps, activities } = habit;
+        const habit = this.findHabitByID(id, userData.habits);
 
-        const index = this.findActivityIndex(activities, `${date}`);
-
-        if (steps === 1) {
-            activities.splice(index, 1);
-        } else {
-            this.deleteStepFromActivity(activities, index, steps);
-        }
+        const index = this.findRightIndexByDate(date, habit.activities);
+        console.log(index);
+        habit.activities.splice(index, 1);
 
         saveUserDataToJson(userName, userData);
-
-        res.send({ message: "Udało się usunąć aktywność", data: userData });
+        res.send({ message: "Udało się usunąć aktywność" });
+    };
+    private findHabitByID = (id: string, habits: UserData["habits"]): Habit => {
+        return habits.find((habit) => habit.id === id)!;
     };
 
-    private deleteStepFromActivity = (
-        activities: [string, number?][],
-        index: number,
-        steps: number
-    ) => {
-        if (activities[index][1] === undefined) {
-            activities[index][1] = steps - 1;
-        } else if (activities[index][1] == 1) {
-            activities.splice(index, 1);
-        } else {
-            activities[index][1]!--;
-        }
-    };
-
-    private findHabit = (userData: UserData, habitName: string): Habit => {
-        return userData.habits.find((habit) => habit.name === habitName)!;
-    };
-
-    private findActivityIndex = (activities: [string, number?][], date: string): number => {
-        for (let index = activities.length - 1; index >= 0; index--) {
-            if (activities[index][0] === date) {
-                return index;
-            }
-        }
-        return -1;
-    };
-
-    private addActivitySorted = (activities: [string, number?][], date: string, steps: boolean) => {
-        const index = this.sortedIndex(activities, new Date(date));
-
-        if (steps) activities.splice(index, 0, [date, 1]);
-        else activities.splice(index, 0, [date]);
-    };
-
-    sortedIndex = (array: any, value: Date) => {
-        var low = 0,
-            high = array.length;
+    findRightIndexByDate = (newDateString: string, activities: string[]) => {
+        let newDate = new Date(newDateString);
+        let low = 0,
+            high = activities.length;
 
         while (low < high) {
-            var mid = (low + high) >>> 1;
-            if (new Date(array[mid][0]) < value) low = mid + 1;
+            let mid = (low + high) >>> 1;
+            if (new Date(activities[mid]) < newDate) low = mid + 1;
             else high = mid;
         }
         return low;

@@ -1,9 +1,9 @@
-import { InferType, number, object, date, string } from "yup";
+import { InferType, object, string } from "yup";
 
 const addActivitySchema = object({
     body: object({
-        habitName: string().required("'habitName' wymagane"),
-        date: date().required("'date' wymagane"),
+        id: string().required("'id' wymagane"),
+        date: string().required("'date' wymagane"),
     }),
 });
 export type AddActivityData = InferType<typeof addActivitySchema>;
