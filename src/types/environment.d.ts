@@ -7,6 +7,9 @@ declare global {
             // Authentication configuration
             JWT_SECRET: string;
             TOKEN_EXPIRE_AFTER: string;
+
+            // MongoDB configuration
+            MONGO_URL: string;
         }
     }
 }

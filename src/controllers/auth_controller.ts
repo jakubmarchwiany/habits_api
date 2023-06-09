@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import { USERS } from "../data/users";
-import Controller from "../interfaces/controller-interface";
-import catchError from "../middleware/catch-error";
+import Controller from "../interfaces/controller_interface";
+import catchError from "../middleware/catch_error";
 import WrongCredentialsException from "../middleware/exceptions/wrong-credentials-exception";
 import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login_user_schema";
 import validate from "../middleware/validate";
@@ -22,7 +22,7 @@ class AuthenticationController implements Controller {
         this.router.post(`/login`, validate(loginUserSchema), catchError(this.loggingIn));
     }
 
-    private readonly loggingIn = async (
+    private loggingIn = async (
         req: Request<never, never, LoginUserData["body"]>,
         res: Response,
         next: NextFunction
@@ -35,7 +35,7 @@ class AuthenticationController implements Controller {
                     const expiresIn = parseInt(TOKEN_EXPIRE_AFTER!);
 
                     const dataStoredInToken: DataStoredInToken = {
-                        name: username,
+                        userName: username,
                     };
 
                     const tokenData = jwt.sign(dataStoredInToken, JWT_SECRET!, { expiresIn });

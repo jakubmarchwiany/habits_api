@@ -1,17 +1,19 @@
+import Activity from "./user/activity_model";
+
 export type User = {
     username: string;
     password: string;
 };
 
-export type activity = {
-    data: Date;
-    quantity?: number;
+export type Activity = {
+    data: string;
+    steps?: number;
 };
 
 export type Habit = {
     name: string;
-    numberOfActivitiesPerDay: number;
-    activities: [data: string, quantity?: number][];
+    steps: number;
+    activities: [string, number?][];
 };
 
 export type UserData = {
