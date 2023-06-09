@@ -25,10 +25,10 @@ class HabitController implements Controller {
     private initializeRoutes() {
         this.router.get(`/data`, authMiddleware, catchError(this.getUserData));
         this.router.post(
-            `/habit/add`,
+            `/habit/create`,
             authMiddleware,
             validate(addHabitSchema),
-            catchError(this.addHabit)
+            catchError(this.createHabit)
         );
         this.router.post(
             "/habit/activity/add",
@@ -59,7 +59,7 @@ class HabitController implements Controller {
         res.send({ message: "Udało się pobrać dane użytkownika", data });
     };
 
-    private addHabit = async (
+    private createHabit = async (
         req: Request<never, never, AddHabitData["body"]> & ReqUser,
         res: Response
     ) => {
@@ -77,7 +77,7 @@ class HabitController implements Controller {
 
         saveUserDataToJson(userName, userData);
 
-        res.send({ message: "Udało się dodać nawyk", data: newHabit });
+        res.send({ message: "Udało się stworzyć nawyk", data: newHabit });
     };
 
     private addActivity = async (
