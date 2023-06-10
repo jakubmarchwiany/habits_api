@@ -16,7 +16,7 @@ class HabitController implements Controller {
     public router = Router();
     public path = "/user";
     public kubaData = getUserDataFromJson("kuba");
-    public juliaData = getUserDataFromJson("kuba");
+    public juliaData = getUserDataFromJson("julia");
 
     constructor() {
         this.initializeRoutes();
@@ -107,7 +107,6 @@ class HabitController implements Controller {
         const habit = this.findHabitByID(id, userData.habits);
 
         const index = this.findRightIndexByDate(date, habit.activities);
-        console.log(index);
         habit.activities.splice(index, 1);
 
         saveUserDataToJson(userName, userData);

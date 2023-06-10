@@ -1,7 +1,7 @@
 import { json, urlencoded } from "body-parser";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
-import express from "express";
+import express, { NextFunction } from "express";
 
 import Controller from "./interfaces/controller_interface";
 import errorMiddleware from "./middleware/error";
@@ -17,11 +17,18 @@ const WHITELIST = (() => {
     }
 })();
 
+function sleepMiddleware(delay: any) {
+    return function (req: any, res: any, next: any) {
+        setTimeout(next, delay);
+    };
+}
+
 class Server {
     public app: express.Application;
 
     constructor(controllers: Controller[]) {
         this.app = express();
+
         this.initializeCors();
         this.initializeMiddlewares();
         this.initializeControllers(controllers);
@@ -29,6 +36,7 @@ class Server {
     }
 
     private initializeMiddlewares() {
+        this.app.use(sleepMiddleware(0));
         this.app.use(json({ limit: "50mb" }));
         this.app.use(urlencoded({ limit: "50mb", extended: true }));
         this.app.use(cookieParser());
