@@ -20,7 +20,7 @@ class HabitController {
         this.getUserData = async (req, res) => {
             const { userName } = req.user;
             const userData = userName == "kuba" ? this.kubaData : this.juliaData;
-            const data = structuredClone(userData);
+            const data = JSON.parse(JSON.stringify(userData));
             data.habits.forEach((habit) => {
                 return habit.activities.length > 60 && habit.activities.splice(-30);
             });
