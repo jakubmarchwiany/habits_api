@@ -6,7 +6,18 @@ import catchError from "../middleware/catch_error";
 import addActivitySchema, {
     AddActivityData,
 } from "../middleware/schemas/habit/add_activity_schema";
-import addHabitSchema, { AddHabitData } from "../middleware/schemas/habit/add_habit_schema";
+import createHabitSchema, {
+    CreateHabitData,
+} from "../middleware/schemas/habit/create_habit_schema";
+import deleteHabitSchema, {
+    DeleteHabitData,
+} from "../middleware/schemas/habit/delete_habit_schema";
+import editHabitNameSchema, {
+    EditHabitNameData,
+} from "../middleware/schemas/habit/edit_habit_name_schema";
+import editHabitsOrderSchema, {
+    EditOrderHabitsData,
+} from "../middleware/schemas/habit/edit_habits_order_schema";
 import validate from "../middleware/validate";
 import { Habit } from "../models/habit";
 import { UserData } from "../models/user_data";
@@ -27,8 +38,26 @@ class HabitController implements Controller {
         this.router.post(
             `/habit/create`,
             authMiddleware,
-            validate(addHabitSchema),
+            validate(createHabitSchema),
             catchError(this.createHabit)
+        );
+        this.router.post(
+            "/habit/edit_name",
+            authMiddleware,
+            validate(editHabitNameSchema),
+            catchError(this.editHabitName)
+        );
+        this.router.post(
+            "/habit/edit_order",
+            authMiddleware,
+            validate(editHabitsOrderSchema),
+            catchError(this.editHabitsOrder)
+        );
+        this.router.post(
+            "/habit/delete",
+            authMiddleware,
+            validate(deleteHabitSchema),
+            catchError(this.deleteHabit)
         );
         this.router.post(
             "/habit/activity/add",
@@ -45,22 +74,36 @@ class HabitController implements Controller {
     }
 
     private getUserData = async (
-        req: Request<never, never, AddHabitData["body"]> & ReqUser,
+        req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
         const { userName } = req.user;
-        const userData = userName == "kuba" ? this.kubaData : this.juliaData;
-        const data = JSON.parse(JSON.stringify(userData)) as UserData;
 
-        data.habits.forEach((habit) => {
-            return habit.activities.length > 60 && habit.activities.splice(-30);
+        const juliaData = JSON.parse(JSON.stringify(this.juliaData)) as UserData;
+        const kubaData = JSON.parse(JSON.stringify(this.kubaData)) as UserData;
+
+        juliaData.habits.forEach((habit) => {
+            return habit.activities.length > 60 && habit.activities.splice(-60);
         });
+        kubaData.habits.forEach((habit) => {
+            return habit.activities.length > 60 && habit.activities.splice(-60);
+        });
+
+        const data = [];
+
+        if (userName === "kuba") {
+            data.push(kubaData);
+            data.push(juliaData);
+        } else {
+            data.push(juliaData);
+            data.push(kubaData);
+        }
 
         res.send({ message: "Udało się pobrać dane użytkownika", data });
     };
 
     private createHabit = async (
-        req: Request<never, never, AddHabitData["body"]> & ReqUser,
+        req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
         const { name } = req.body;
@@ -78,6 +121,62 @@ class HabitController implements Controller {
         saveUserDataToJson(userName, userData);
 
         res.send({ message: "Udało się stworzyć nawyk", data: newHabit });
+    };
+
+    private editHabitName = async (
+        req: Request<never, never, EditHabitNameData["body"]> & ReqUser,
+        res: Response
+    ) => {
+        const { id, newName } = req.body;
+        const { userName } = req.user;
+        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+
+        const habit = this.findHabitByID(id, userData.habits);
+
+        habit.name = newName;
+        saveUserDataToJson(userName, userData);
+        res.send({ message: "Udało się zmienić nazwę nawyku" });
+    };
+
+    private editHabitsOrder = async (
+        req: Request<never, never, EditOrderHabitsData["body"]> & ReqUser,
+        res: Response
+    ) => {
+        const { habitsID } = req.body;
+        const { userName } = req.user;
+        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+
+        const sortedHabits = [];
+        for (const habitId of habitsID) {
+            const habit = userData.habits.find((h) => h.id === habitId);
+            if (habit) {
+                sortedHabits.push(habit);
+            }
+        }
+        if (sortedHabits.length !== userData.habits.length) {
+            return res.status(400).send({ message: "Niepoprawne ID nawyku" });
+        }
+
+        userData.habits = sortedHabits;
+
+        saveUserDataToJson(userName, userData);
+        res.send({ message: "Udało się zmienić kolejność nawyków" });
+    };
+
+    private deleteHabit = async (
+        req: Request<never, never, DeleteHabitData["body"]> & ReqUser,
+        res: Response
+    ) => {
+        const { id } = req.body;
+        const { userName } = req.user;
+        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+
+        const habitIndex = userData.habits.findIndex((habit) => habit.id === id);
+
+        userData.habits.splice(habitIndex, 1);
+        saveUserDataToJson(userName, userData);
+
+        res.send({ message: "Udało się usunąć nawyk" });
     };
 
     private addActivity = async (

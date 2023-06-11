@@ -2,9 +2,16 @@ export {};
 declare global {
     namespace NodeJS {
         interface ProcessEnv {
-            PORT: string;
+            // environment
             NODE_ENV: "development" | "production";
-            // Authentication configuration
+
+            // server running port
+            PORT: string;
+
+            // cors options
+            WHITELISTED_DOMAINS: string;
+
+            // authentication configuration
             JWT_SECRET: string;
             TOKEN_EXPIRE_AFTER: string;
         }

@@ -1,9 +1,9 @@
 import { InferType, object, string } from "yup";
 
-const addHabitSchema = object({
+const createHabitSchema = object({
     body: object({
         name: string().required("'name' wymagane").min(1, "Minmalna długość to 1 znak"),
     }),
 });
-export type AddHabitData = InferType<typeof addHabitSchema>;
-export default addHabitSchema;
+export type CreateHabitData = InferType<typeof createHabitSchema>;
+export default createHabitSchema;

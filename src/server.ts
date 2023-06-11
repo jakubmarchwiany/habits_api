@@ -1,21 +1,15 @@
 import { json, urlencoded } from "body-parser";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
-import express, { NextFunction } from "express";
+import express from "express";
 
 import Controller from "./interfaces/controller_interface";
 import errorMiddleware from "./middleware/error";
 import HttpException from "./middleware/exceptions/http";
 
-const { NODE_ENV, DEV_WHITELISTED_DOMAINS, PRO_WHITELISTED_DOMAINS } = process.env;
+const { WHITELISTED_DOMAINS } = process.env;
 
-const WHITELIST = (() => {
-    if (NODE_ENV === "development") {
-        return DEV_WHITELISTED_DOMAINS ? DEV_WHITELISTED_DOMAINS.split(",") : [];
-    } else {
-        return PRO_WHITELISTED_DOMAINS ? PRO_WHITELISTED_DOMAINS.split(",") : [];
-    }
-})();
+const WHITELIST = WHITELISTED_DOMAINS ? WHITELISTED_DOMAINS.split(",") : [];
 
 function sleepMiddleware(delay: any) {
     return function (req: any, res: any, next: any) {
@@ -28,7 +22,6 @@ class Server {
 
     constructor(controllers: Controller[]) {
         this.app = express();
-
         this.initializeCors();
         this.initializeMiddlewares();
         this.initializeControllers(controllers);
@@ -36,7 +29,7 @@ class Server {
     }
 
     private initializeMiddlewares() {
-        this.app.use(sleepMiddleware(0));
+        // this.app.use(sleepMiddleware(0));
         this.app.use(json({ limit: "50mb" }));
         this.app.use(urlencoded({ limit: "50mb", extended: true }));
         this.app.use(cookieParser());
