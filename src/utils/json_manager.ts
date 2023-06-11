@@ -1,7 +1,7 @@
 import { readFileSync, writeFileSync } from "jsonfile";
 import path from "path";
-import { UserData } from "../models/user_data";
 import { LoginCredentials } from "../models/login_credentials";
+import { UserData } from "../models/user_data";
 
 export const getUsersFromJson = (): LoginCredentials[] => {
     const data = readFileSync(path.join(__dirname + "../../data/users.json"), "utf8");
