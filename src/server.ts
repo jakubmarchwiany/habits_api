@@ -58,7 +58,7 @@ class Server {
 
     private initializeControllers(controllers: Controller[]) {
         controllers.forEach((controller) => {
-            this.app.use(controller.path, controller.router);
+            this.app.use("/bobciowo" + controller.path, controller.router);
         });
         this.app.use("*", (req, res, next) => {
             next(new HttpException(404, "Not found"));
