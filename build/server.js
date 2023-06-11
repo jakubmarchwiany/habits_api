@@ -53,7 +53,7 @@ class Server {
     }
     initializeControllers(controllers) {
         controllers.forEach((controller) => {
-            this.app.use(controller.path, controller.router);
+            this.app.use("/bobciowo" + controller.path, controller.router);
         });
         this.app.use("*", (req, res, next) => {
             next(new http_1.default(404, "Not found"));
