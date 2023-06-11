@@ -50,7 +50,7 @@ class HabitController implements Controller {
     ) => {
         const { userName } = req.user;
         const userData = userName == "kuba" ? this.kubaData : this.juliaData;
-        const data = structuredClone(userData) as UserData;
+        const data = JSON.parse(JSON.stringify(userData)) as UserData;
 
         data.habits.forEach((habit) => {
             return habit.activities.length > 60 && habit.activities.splice(-30);
