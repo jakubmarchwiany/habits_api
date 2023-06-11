@@ -1,18 +1,19 @@
 import { NextFunction, Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { USERS } from "../data/users";
 import Controller from "../interfaces/controller_interface";
 import catchError from "../middleware/catch_error";
 import WrongCredentialsException from "../middleware/exceptions/wrong-credentials-exception";
 import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login_user_schema";
 import validate from "../middleware/validate";
 import { DataStoredInToken } from "../models/data_stored_in_token";
+import { getUsersFromJson } from "../utils/json_manager";
 
 const { JWT_SECRET, TOKEN_EXPIRE_AFTER } = process.env;
 
 class AuthenticationController implements Controller {
     public router = Router();
     public path = "/auth";
+    private users = getUsersFromJson();
 
     constructor() {
         this.initializeRoutes();
@@ -29,7 +30,7 @@ class AuthenticationController implements Controller {
     ) => {
         const { username, password } = req.body;
 
-        for (const element of USERS) {
+        for (const element of this.users) {
             if (element.username == username) {
                 if (element.password == password) {
                     const expiresIn = parseInt(TOKEN_EXPIRE_AFTER!);

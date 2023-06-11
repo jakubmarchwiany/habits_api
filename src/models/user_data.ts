@@ -1,4 +1,4 @@
-import { Habit } from "./Habit";
+import { Habit } from "./habit";
 
 export type UserData = {
     version: number;

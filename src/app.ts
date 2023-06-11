@@ -1,4 +1,3 @@
-import "dotenv/config";
 import AuthenticationController from "./controllers/auth_controller";
 import HabitController from "./controllers/habit_controller";
 import Server from "./server";
