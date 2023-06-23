@@ -1,3 +1,3 @@
 export type DataStoredInToken = {
-    userName: string;
+    id: string;
 };

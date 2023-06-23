@@ -14,6 +14,9 @@ function validateEnv() {
         // authentication configuration
         JWT_SECRET: str(),
         TOKEN_EXPIRE_AFTER: num(),
+
+        // database configuration
+        MONGO_URL: str(),
     });
 }
 

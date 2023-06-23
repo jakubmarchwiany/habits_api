@@ -1,8 +1,9 @@
 import { Request, Response, Router } from "express";
-import uniqid from "uniqid";
+import { ClientSession } from "mongoose";
 import Controller from "../interfaces/controller_interface";
 import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
+import HttpException from "../middleware/exceptions/http";
 import addActivitySchema, {
     AddActivityData,
 } from "../middleware/schemas/habit/add_activity_schema";
@@ -20,12 +21,17 @@ import editHabitsOrderSchema, {
 } from "../middleware/schemas/habit/edit_habits_order_schema";
 import validate from "../middleware/validate";
 import { Habit } from "../models/habit";
+import { IHabit } from "../models/user/user_interface";
+import User from "../models/user/user_model";
 import { UserData } from "../models/user_data";
 import { getUserDataFromJson, saveUserDataToJson } from "../utils/json_manager";
+
+const { WHITELISTED_DOMAINS, MONGO_URL } = process.env;
 
 class HabitController implements Controller {
     public router = Router();
     public path = "/user";
+    private readonly user = User;
     public kubaData = getUserDataFromJson("kuba");
     public juliaData = getUserDataFromJson("julia");
 
@@ -77,50 +83,28 @@ class HabitController implements Controller {
         req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { userName } = req.user;
+        const { id } = req.user;
+        const user = await this.user.findById(id);
 
-        const juliaData = JSON.parse(JSON.stringify(this.juliaData)) as UserData;
-        const kubaData = JSON.parse(JSON.stringify(this.kubaData)) as UserData;
-
-        juliaData.habits.forEach((habit) => {
-            return habit.activities.length > 60 && habit.activities.splice(-60);
-        });
-        kubaData.habits.forEach((habit) => {
-            return habit.activities.length > 60 && habit.activities.splice(-60);
-        });
-
-        const data = [];
-
-        if (userName === "kuba") {
-            data.push(kubaData);
-            data.push(juliaData);
+        if (user) {
+            res.send({ message: "Udało się pobrać dane użytkownika", data: user });
         } else {
-            data.push(juliaData);
-            data.push(kubaData);
+            throw new HttpException(400, "Nie znaleziono użytkownika");
         }
-
-        res.send({ message: "Udało się pobrać dane użytkownika", data });
     };
 
     private createHabit = async (
         req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { name } = req.body;
-        const { userName } = req.user;
-        const userData = userName == "kuba" ? this.kubaData : this.juliaData;
+        const { name, n_steps } = req.body;
+        const { id } = req.user;
 
-        const newHabit: Habit = {
-            id: uniqid(),
-            name,
-            activities: [],
-        };
+        const habit: IHabit = { name: name, n_steps: n_steps };
 
-        userData.habits.push(newHabit);
+        await this.user.findByIdAndUpdate(id, { $push: { habits: habit } });
 
-        saveUserDataToJson(userName, userData);
-
-        res.send({ message: "Udało się stworzyć nawyk", data: newHabit });
+        res.send({ message: "Udało się dodać nawyk" });
     };
 
     private editHabitName = async (
@@ -128,13 +112,13 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { id, newName } = req.body;
-        const { userName } = req.user;
-        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+        const { id: userID } = req.user;
 
-        const habit = this.findHabitByID(id, userData.habits);
+        await this.user.updateOne(
+            { _id: userID, "habits._id": id },
+            { $set: { "habits.$.name": newName } }
+        );
 
-        habit.name = newName;
-        saveUserDataToJson(userName, userData);
         res.send({ message: "Udało się zmienić nazwę nawyku" });
     };
 
@@ -143,23 +127,21 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { habitsID } = req.body;
-        const { userName } = req.user;
-        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+        const { id } = req.user;
 
-        const sortedHabits = [];
-        for (const habitId of habitsID) {
-            const habit = userData.habits.find((h) => h.id === habitId);
+        const userHabits = await this.user.findById(id, { habits: 1 }).lean();
+
+        const newOrder = [];
+
+        for (const id of habitsID) {
+            const habit = userHabits.habits.find((habit) => habit._id == id);
             if (habit) {
-                sortedHabits.push(habit);
+                newOrder.push(habit);
             }
         }
-        if (sortedHabits.length !== userData.habits.length) {
-            return res.status(400).send({ message: "Niepoprawne ID nawyku" });
-        }
 
-        userData.habits = sortedHabits;
+        await this.user.findByIdAndUpdate(id, { $set: { habits: habitsID } });
 
-        saveUserDataToJson(userName, userData);
         res.send({ message: "Udało się zmienić kolejność nawyków" });
     };
 
@@ -168,15 +150,25 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { id } = req.body;
-        const { userName } = req.user;
-        const userData = userName === "kuba" ? this.kubaData : this.juliaData;
+        const { id: userID } = req.user;
 
-        const habitIndex = userData.habits.findIndex((habit) => habit.id === id);
+        const session: ClientSession = await this.user.startSession();
+        session.startTransaction();
+        try {
+            await this.habit.findByIdAndDelete(id);
+            await this.user.findByIdAndUpdate(userID, { $pull: { habits: id } });
 
-        userData.habits.splice(habitIndex, 1);
-        saveUserDataToJson(userName, userData);
+            res.send({ message: "Udało się usunąć nawyk" });
+            await session.commitTransaction();
+        } catch (error) {
+            // Rollback any changes made in the database
+            await session.abortTransaction();
 
-        res.send({ message: "Udało się usunąć nawyk" });
+            // Rethrow the error
+            throw new HttpException(400, "Nie udało się usunąć nawyku");
+        } finally {
+            session.endSession();
+        }
     };
 
     private addActivity = async (
