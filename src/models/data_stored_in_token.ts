@@ -1,3 +1,5 @@
+import { Schema } from "mongoose";
+
 export type DataStoredInToken = {
-    id: string;
+    id: Schema.Types.ObjectId;
 };

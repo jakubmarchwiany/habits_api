@@ -2,8 +2,8 @@ import { Model, Types } from "mongoose";
 
 export interface IActivity {
     _id: Types.ObjectId;
+    habit: Types.ObjectId;
     date: Date;
-    n_steps_done?: number;
-    done: boolean;
+    step?: number;
 }
 export type ActivityModel = Model<IActivity, unknown, unknown>;

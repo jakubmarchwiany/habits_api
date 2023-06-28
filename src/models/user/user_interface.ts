@@ -1,13 +1,8 @@
 import { Model, Schema } from "mongoose";
-
-export interface IHabit {
-    _id?: string;
-    name: string;
-    n_steps: number;
-}
+import { IHabit } from "./habit_interface";
 
 export interface IUser {
-    _id: string;
+    _id: Schema.Types.ObjectId;
     username: string;
     password: string;
     habits: IHabit[];
