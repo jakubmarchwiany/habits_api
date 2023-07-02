@@ -6,7 +6,7 @@ import { IHabit } from "./habit_interface";
 const userSchema = new Schema<IUser, UserModel>({
     username: { type: String, required: true },
     password: { type: String, required: true },
-    habits: [new Schema<IHabit>({ name: String, n_steps: Number })],
+    habits: [new Schema<IHabit>({ name: String })],
 });
 
 userSchema.plugin(updateVersioningPlugin);

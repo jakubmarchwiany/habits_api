@@ -1,9 +1,8 @@
-import { Schema } from "mongoose";
+import { ObjectId, Schema } from "mongoose";
 import { IActivity } from "../activity/activity_interface";
 
 export interface IHabit {
-    _id?: Schema.Types.ObjectId;
+    _id: string;
     name: string;
-    n_steps: number;
     activities?: IActivity[];
 }

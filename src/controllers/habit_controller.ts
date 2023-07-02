@@ -25,6 +25,9 @@ import validate from "../middleware/validate";
 import Activity from "../models/activity/activity_model";
 import { IHabit } from "../models/user/habit_interface";
 import User from "../models/user/user_model";
+import mongoose, { ObjectId } from "mongoose";
+import { IActivity } from "../models/activity/activity_interface";
+import { UserActivitiesDB, getUserActivities } from "../utils/mongoDB";
 
 class HabitController implements Controller {
     public router = Router();
@@ -37,7 +40,6 @@ class HabitController implements Controller {
     }
 
     private initializeRoutes() {
-        this.router.get(`/data`, authMiddleware, catchError(this.getUserData));
         this.router.post(
             `/habit/create`,
             authMiddleware,
@@ -76,129 +78,26 @@ class HabitController implements Controller {
         );
     }
 
-    private getUserData = async (
-        req: Request<never, never, CreateHabitData["body"]> & ReqUser,
-        res: Response
-    ) => {
-        const { id } = req.user;
-        const users = await this.user.find({}, { habits: 1 }).lean();
-
-        const dateAgo = new Date();
-        dateAgo.setDate(dateAgo.getDate() - 41);
-
-        if (users) {
-            let logUser, otherUser;
-
-            if (users[0]._id == id) {
-                logUser = users[0];
-                otherUser = users[1];
-            } else {
-                console.log("else");
-                logUser = users[1];
-                otherUser = users[0];
-            }
-
-            const logUserHabitsID = logUser.habits.map((habit) => habit._id);
-            const otherUserHabitsID = otherUser.habits.map((habit) => habit._id);
-
-            const logUserActivities = new Promise(async (resolve, reject) =>
-                resolve(
-                    await this.activity.aggregate([
-                        {
-                            $match: {
-                                habit: { $in: logUserHabitsID },
-                                date: { $gte: dateAgo },
-                            },
-                        },
-                        {
-                            $group: {
-                                _id: "$habit",
-                                activities: { $push: "$$ROOT" },
-                            },
-                        },
-                        {
-                            $project: {
-                                activities: {
-                                    _id: 1,
-                                    date: 1,
-                                },
-                            },
-                        },
-                    ])
-                )
-            );
-
-            const otherUserActivities = new Promise(async (resolve, reject) =>
-                resolve(
-                    await this.activity.aggregate([
-                        {
-                            $match: {
-                                habit: { $in: otherUserHabitsID },
-                                date: { $gte: dateAgo },
-                            },
-                        },
-                        {
-                            $group: {
-                                _id: "$habit",
-                                activities: { $push: "$$ROOT" },
-                            },
-                        },
-                        {
-                            $project: {
-                                activities: {
-                                    _id: 1,
-                                    date: 1,
-                                },
-                            },
-                        },
-                    ])
-                )
-            );
-
-            Promise.all([logUserActivities, otherUserActivities]).then((values) => {
-                logUser.habits.map((habit) => {
-                    habit.activities = [];
-                });
-                otherUser.habits.map((habit) => {
-                    habit.activities = [];
-                });
-
-                for (let i = 0; i < values[0].length; i++) {
-                    logUser.habits.find(
-                        (habit) => habit._id.toString() === values[0][i]._id.toString()
-                    ).activities = values[0][i].activities;
-                }
-
-                for (let j = 0; j < values[1].length; j++) {
-                    otherUser.habits.find(
-                        (habit) => habit._id.toString() === values[1][j]._id.toString()
-                    ).activities = values[1][j].activities;
-                }
-                res.send({
-                    message: "Udało się pobrać dane użytkownika",
-                    data: [logUser, otherUser],
-                });
-            });
-        } else {
-            throw new HttpException(400, "Nie znaleziono użytkownika");
-        }
-    };
-
     private createHabit = async (
         req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { name, n_steps } = req.body;
+        const { name } = req.body;
         const { id } = req.user;
 
-        const habit: IHabit = { name: name, n_steps: n_steps };
+        const newHabitID = new mongoose.mongo.ObjectId();
+        const habit: IHabit = {
+            _id: newHabitID.toString(),
+            name: name,
+            activities: [],
+        };
 
-        const dbResponse = await this.user.updateOne({ _id: id }, { $push: { habits: habit } });
+        const createHabitDB = await this.user.updateOne({ _id: id }, { $push: { habits: habit } });
 
-        if (dbResponse.modifiedCount === 0)
+        if (createHabitDB.modifiedCount === 0)
             throw new HttpException(400, "Nie udało się dodać nawyku");
 
-        res.send({ message: "Udało się dodać nawyk" });
+        res.send({ message: "Udało się dodać nawyk", data: habit });
     };
 
     private editHabitName = async (
@@ -208,14 +107,12 @@ class HabitController implements Controller {
         const { id, newName } = req.body;
         const { id: userID } = req.user;
 
-        const dbResponse = await this.user.updateOne(
+        const editHabitDB = await this.user.updateOne(
             { _id: userID, "habits._id": id },
             { $set: { "habits.$.name": newName } }
         );
 
-        console.log(id);
-
-        if (dbResponse.modifiedCount === 0)
+        if (editHabitDB.modifiedCount === 0)
             throw new HttpException(400, "Nie udało się zmienić nazwy nawyku");
 
         res.send({ message: "Udało się zmienić nazwę nawyku" });
@@ -230,18 +127,21 @@ class HabitController implements Controller {
 
         const userHabits = await this.user.findById(id, { habits: 1 }).lean();
 
-        const newOrder = [];
+        const newHabitsOrder = [];
 
         for (const id of habitsID) {
             const habit = userHabits.habits.find((habit) => habit._id == id);
             if (habit) {
-                newOrder.push(habit);
+                newHabitsOrder.push(habit);
             }
         }
 
-        const dbResponse = await this.user.updateOne({ _id: id }, { $set: { habits: newOrder } });
+        const newOrderDB = await this.user.updateOne(
+            { _id: id },
+            { $set: { habits: newHabitsOrder } }
+        );
 
-        if (dbResponse.modifiedCount === 0)
+        if (newOrderDB.modifiedCount === 0)
             throw new HttpException(400, "Nie udało się zmienić kolejność nawyków");
 
         res.send({ message: "Udało się zmienić kolejność nawyków" });
@@ -254,15 +154,31 @@ class HabitController implements Controller {
         const { id } = req.body;
         const { id: userID } = req.user;
 
-        const dbResponse = await this.user.updateOne(
-            { _id: userID, "habits._id": id },
-            { $pull: { habits: { _id: id } } }
-        );
+        const session = await mongoose.startSession();
 
-        if (dbResponse.modifiedCount === 0)
+        try {
+            session.startTransaction();
+
+            const deleteHabitFromUserDB = await this.user.updateOne(
+                { _id: userID, "habits._id": id },
+                { $pull: { habits: { _id: id } } },
+                { session }
+            );
+
+            if (deleteHabitFromUserDB.modifiedCount === 0) {
+                throw new Error();
+            }
+
+            await this.activity.deleteMany({ habit: id }, { session });
+
+            await session.commitTransaction();
+            res.send({ message: "Udało się usunąć nawyk" });
+        } catch (error) {
+            await session.abortTransaction();
             throw new HttpException(400, "Nie udało się usunąć nawyku");
-
-        res.send({ message: "Udało się usunąć nawyk" });
+        } finally {
+            session.endSession();
+        }
     };
 
     private createActivity = async (
@@ -271,17 +187,10 @@ class HabitController implements Controller {
     ) => {
         const { id, date } = req.body;
 
-        const dbResponse = await this.activity.create({ habit: id, date: date });
+        const createActivityDB = await this.activity.create({ habit: id, date: date });
 
-        res.send({ message: "Udało się dodać aktywność", data: dbResponse._id });
+        res.send({ message: "Udało się dodać aktywność", data: createActivityDB._id });
     };
-
-    // private editActivity = async (
-    //     req: Request<never, never, EditActivityData["body"]> & ReqUser,
-    //     res: Response
-    // ) => {
-    //     const { id, date } = req.body;
-    // };
 
     private deleteActivity = async (
         req: Request<never, never, DeleteActivityData["body"]> & ReqUser,

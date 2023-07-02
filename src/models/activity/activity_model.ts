@@ -5,7 +5,6 @@ const activitySchema = new Schema<IActivity, ActivityModel>(
     {
         habit: { type: Schema.Types.ObjectId, required: true, index: true },
         date: { type: Date, required: true, index: true },
-        step: { type: Number },
     },
     { versionKey: false }
 );
