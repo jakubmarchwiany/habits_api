@@ -65,7 +65,7 @@ class AuthenticationController implements Controller {
         res: Response
     ) => {
         const { id } = req.user;
-        const users = await this.user.find({}, { habits: 1 }).lean();
+        const users = await this.user.find({}, { habits: 1}).lean();
 
         const dateAgo = new Date();
         dateAgo.setDate(dateAgo.getDate() - 41);
@@ -81,17 +81,21 @@ class AuthenticationController implements Controller {
                 logUser = users[1];
                 otherUser = users[0];
             }
+            console.log(logUser)
 
             const logUserHabitsID = logUser.habits.map((habit) => habit._id);
             const otherUserHabitsID = otherUser.habits.map((habit) => habit._id);
 
-            const logUserActivities = await getUserActivities(dateAgo, logUserHabitsID) as UserActivitiesDB[];
-            const otherUserActivities = await getUserActivities(dateAgo, otherUserHabitsID) as UserActivitiesDB[];
-
+            const logUserActivities = (await getUserActivities(
+                dateAgo,
+                logUserHabitsID
+            )) as UserActivitiesDB[];
+            const otherUserActivities = (await getUserActivities(
+                dateAgo,
+                otherUserHabitsID
+            )) as UserActivitiesDB[];
 
             Promise.all([logUserActivities, otherUserActivities]).then((values) => {
-                console.log(values);
-
                 logUser.habits.map((habit) => {
                     habit.activities = [];
                 });

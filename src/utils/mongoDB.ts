@@ -25,6 +25,20 @@ export const getUserActivities = (date: Date, habitsID: string[]) => {
                         },
                     },
                 },
+                {
+                    $unwind: "$activities",
+                },
+                {
+                    $sort: {
+                        "activities.date": 1, // Sort by date in ascending order, use -1 for descending order
+                    },
+                },
+                {
+                    $group: {
+                        _id: "$_id",
+                        activities: { $push: "$activities" },
+                    },
+                },
             ])
         )
     );

@@ -185,11 +185,14 @@ class HabitController implements Controller {
         req: Request<never, never, AddActivityData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { id, date } = req.body;
+        const { habitID, date } = req.body;
 
-        const createActivityDB = await this.activity.create({ habit: id, date: date });
+        const createActivityDB = await this.activity.create({ habit: habitID, date: date });
 
-        res.send({ message: "Udało się dodać aktywność", data: createActivityDB._id });
+        res.send({
+            message: "Udało się dodać aktywność",
+            data: { activityID: createActivityDB._id },
+        });
     };
 
     private deleteActivity = async (
