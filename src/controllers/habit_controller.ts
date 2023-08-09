@@ -83,7 +83,7 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { name } = req.body;
-        const { id } = req.user;
+        const { username } = req.user;
 
         const newHabitID = new mongoose.mongo.ObjectId();
         const habit: IHabit = {
@@ -92,7 +92,7 @@ class HabitController implements Controller {
             activities: [],
         };
 
-        const createHabitDB = await this.user.updateOne({ _id: id }, { $push: { habits: habit } });
+        const createHabitDB = await this.user.updateOne({ username }, { $push: { habits: habit } });
 
         if (createHabitDB.modifiedCount === 0)
             throw new HttpException(400, "Nie udało się dodać nawyku");
@@ -105,10 +105,10 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { id, newName } = req.body;
-        const { id: userID } = req.user;
+        const { username } = req.user;
 
         const editHabitDB = await this.user.updateOne(
-            { _id: userID, "habits._id": id },
+            { username, "habits._id": id },
             { $set: { "habits.$.name": newName } }
         );
 
@@ -123,9 +123,9 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { habitsID } = req.body;
-        const { id } = req.user;
+        const { username } = req.user;
 
-        const userHabits = await this.user.findById(id, { habits: 1 }).lean();
+        const userHabits = await this.user.findOne({ username }, { habits: 1 }).lean();
 
         const newHabitsOrder = [];
 
@@ -137,7 +137,7 @@ class HabitController implements Controller {
         }
 
         const newOrderDB = await this.user.updateOne(
-            { _id: id },
+            { username },
             { $set: { habits: newHabitsOrder } }
         );
 
@@ -152,7 +152,7 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { id } = req.body;
-        const { id: userID } = req.user;
+        const { username } = req.user;
 
         const session = await mongoose.startSession();
 
@@ -160,7 +160,7 @@ class HabitController implements Controller {
             session.startTransaction();
 
             const deleteHabitFromUserDB = await this.user.updateOne(
-                { _id: userID, "habits._id": id },
+                { username, "habits._id": id },
                 { $pull: { habits: { _id: id } } },
                 { session }
             );

@@ -2,16 +2,16 @@ import bcrypt from "bcrypt";
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import Controller from "../interfaces/controller_interface";
+import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
+import HttpException from "../middleware/exceptions/http";
 import WrongCredentialsException from "../middleware/exceptions/wrong-credentials-exception";
 import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login_user_schema";
+import { CreateHabitData } from "../middleware/schemas/habit/create_habit_schema";
 import validate from "../middleware/validate";
 import { DataStoredInToken } from "../models/data_stored_in_token";
 import User from "../models/user/user_model";
-import authMiddleware, { ReqUser } from "../middleware/authentication";
-import HttpException from "../middleware/exceptions/http";
-import { CreateHabitData } from "../middleware/schemas/habit/create_habit_schema";
-import { getUserActivities, UserActivitiesDB } from "../utils/mongoDB";
+import { UserActivitiesDB, getUserActivities } from "../utils/mongoDB";
 
 const { JWT_SECRET, TOKEN_EXPIRE_AFTER } = process.env;
 
@@ -26,7 +26,7 @@ class AuthenticationController implements Controller {
 
     private initializeRoutes() {
         this.router.post(`/login`, validate(loginUserSchema), catchError(this.loggingIn));
-        this.router.get(`/get_user_data`, authMiddleware, catchError(this.getUserData));
+        this.router.get(`/get_user_habits`, authMiddleware, catchError(this.getUserData));
     }
 
     private loggingIn = async (
@@ -41,8 +41,10 @@ class AuthenticationController implements Controller {
             const isPasswordMatching = await bcrypt.compare(password, user.password);
 
             if (isPasswordMatching) {
+                const dearUsername = username === "kuba" ? "julia" : "kuba";
                 const dataStoredInToken: DataStoredInToken = {
-                    id: user._id,
+                    username,
+                    dearUsername,
                 };
 
                 const expiresIn = parseInt(TOKEN_EXPIRE_AFTER);
@@ -61,63 +63,40 @@ class AuthenticationController implements Controller {
     };
 
     private getUserData = async (
-        req: Request<never, never, CreateHabitData["body"]> & ReqUser,
+        req: Request<never, never, CreateHabitData["body"], { days: number; isUser: string }> &
+            ReqUser,
         res: Response
     ) => {
-        const { id } = req.user;
-        const users = await this.user.find({}, { habits: 1}).lean();
+        const { username, dearUsername } = req.user;
+        const { days, isUser } = req.query;
+
+        const user = isUser === "true" ? username : dearUsername;
 
         const dateAgo = new Date();
-        dateAgo.setDate(dateAgo.getDate() - 41);
+        dateAgo.setDate(dateAgo.getDate() - days);
 
-        if (users) {
-            let logUser, otherUser;
+        const userData = await this.user.findOne({ username: user }, { habits: 1 }).lean();
 
-            if (users[0]._id == id) {
-                logUser = users[0];
-                otherUser = users[1];
-            } else {
-                console.log("else");
-                logUser = users[1];
-                otherUser = users[0];
+        if (userData) {
+            const userHabitsID = userData.habits.map((habit) => habit._id);
+
+            const userActivities = (await getUserActivities(
+                dateAgo,
+                userHabitsID
+            )) as UserActivitiesDB[];
+
+            userData.habits.map((habit) => {
+                habit.activities = [];
+            });
+
+            for (let i = 0; i < userActivities.length; i++) {
+                userData.habits.find(
+                    (habit) => habit._id.toString() === userActivities[i]._id.toString()
+                ).activities = userActivities[i].activities;
             }
-            console.log(logUser)
-
-            const logUserHabitsID = logUser.habits.map((habit) => habit._id);
-            const otherUserHabitsID = otherUser.habits.map((habit) => habit._id);
-
-            const logUserActivities = (await getUserActivities(
-                dateAgo,
-                logUserHabitsID
-            )) as UserActivitiesDB[];
-            const otherUserActivities = (await getUserActivities(
-                dateAgo,
-                otherUserHabitsID
-            )) as UserActivitiesDB[];
-
-            Promise.all([logUserActivities, otherUserActivities]).then((values) => {
-                logUser.habits.map((habit) => {
-                    habit.activities = [];
-                });
-                otherUser.habits.map((habit) => {
-                    habit.activities = [];
-                });
-
-                for (let i = 0; i < values[0].length; i++) {
-                    logUser.habits.find(
-                        (habit) => habit._id.toString() === values[0][i]._id.toString()
-                    ).activities = values[0][i].activities;
-                }
-
-                for (let j = 0; j < values[1].length; j++) {
-                    otherUser.habits.find(
-                        (habit) => habit._id.toString() === values[1][j]._id.toString()
-                    ).activities = values[1][j].activities;
-                }
-                res.send({
-                    message: "Udało się pobrać dane użytkownika",
-                    data: [logUser, otherUser],
-                });
+            res.send({
+                message: "Udało się pobrać nawyki użytkownika",
+                data: userData,
             });
         } else {
             throw new HttpException(400, "Nie znaleziono użytkownika");
