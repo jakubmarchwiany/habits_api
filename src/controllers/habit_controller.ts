@@ -82,13 +82,16 @@ class HabitController implements Controller {
         req: Request<never, never, CreateHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { name } = req.body;
+        const { name, description, periodInDays } = req.body;
         const { username } = req.user;
+        console.log(description)
 
         const newHabitID = new mongoose.mongo.ObjectId();
         const habit: IHabit = {
             _id: newHabitID.toString(),
-            name: name,
+            name,
+            description,
+            periodInDays,
             activities: [],
         };
 
