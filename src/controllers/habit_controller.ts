@@ -40,6 +40,7 @@ class HabitController implements Controller {
     }
 
     private initializeRoutes() {
+        this.router.get(`/get_habits`, authMiddleware, catchError(this.getHabits));
         this.router.post(
             `/habit/create`,
             authMiddleware,
@@ -77,6 +78,49 @@ class HabitController implements Controller {
             catchError(this.deleteActivity)
         );
     }
+    private getHabits = async (
+        req: Request<never, never, CreateHabitData["body"], { days: number; isUser: string }> &
+            ReqUser,
+        res: Response
+    ) => {
+        const { username, dearUsername } = req.user;
+        const { days, isUser } = req.query;
+
+        const user = isUser === "true" ? username : dearUsername;
+
+        const dateAgo = new Date();
+        dateAgo.setDate(dateAgo.getDate() - days);
+
+        const userData = await this.user.findOne({ username: user }, { habits: 1 }).lean();
+
+        if (userData) {
+            const userHabitsID = userData.habits.map((habit) => habit._id);
+
+            const userActivities = (await getUserActivities(
+                dateAgo,
+                userHabitsID
+            )) as UserActivitiesDB[];
+
+            userData.habits.map((habit) => {
+                habit.activities = [];
+            });
+
+            for (let i = 0; i < userActivities.length; i++) {
+                userData.habits.find(
+                    (habit) => habit._id.toString() === userActivities[i]._id.toString()
+                ).activities = userActivities[i].activities;
+            }
+            console.log(userData);
+
+            const data = { habits: userData.habits, HabitsGroups: [] };
+            res.send({
+                message: "Udało się pobrać nawyki użytkownika",
+                data,
+            });
+        } else {
+            throw new HttpException(400, "Nie znaleziono użytkownika");
+        }
+    };
 
     private createHabit = async (
         req: Request<never, never, CreateHabitData["body"]> & ReqUser,
@@ -84,7 +128,6 @@ class HabitController implements Controller {
     ) => {
         const { name, description, periodInDays } = req.body;
         const { username } = req.user;
-        console.log(description)
 
         const newHabitID = new mongoose.mongo.ObjectId();
         const habit: IHabit = {
@@ -92,7 +135,6 @@ class HabitController implements Controller {
             name,
             description,
             periodInDays,
-            activities: [],
         };
 
         const createHabitDB = await this.user.updateOne({ username }, { $push: { habits: habit } });
