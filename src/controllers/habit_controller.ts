@@ -54,10 +54,10 @@ class HabitController implements Controller {
             catchError(this.editHabitName)
         );
         this.router.post(
-            "/habit/edit_order",
+            "/habit/create_groups",
             authMiddleware,
             validate(editHabitsOrderSchema),
-            catchError(this.editHabitsOrder)
+            catchError(this.createGroups)
         );
         this.router.post(
             "/habit/delete",
@@ -91,7 +91,9 @@ class HabitController implements Controller {
         const dateAgo = new Date();
         dateAgo.setDate(dateAgo.getDate() - days);
 
-        const userData = await this.user.findOne({ username: user }, { habits: 1 }).lean();
+        const userData = await this.user
+            .findOne({ username: user }, { habits: 1, habitGroups: 1 })
+            .lean();
 
         if (userData) {
             const userHabitsID = userData.habits.map((habit) => habit._id);
@@ -110,9 +112,8 @@ class HabitController implements Controller {
                     (habit) => habit._id.toString() === userActivities[i]._id.toString()
                 ).activities = userActivities[i].activities;
             }
-            console.log(userData);
 
-            const data = { habits: userData.habits, HabitsGroups: [] };
+            const data = { habits: userData.habits, habitGroups: userData.habitGroups };
             res.send({
                 message: "Udało się pobrać nawyki użytkownika",
                 data,
@@ -135,6 +136,7 @@ class HabitController implements Controller {
             name,
             description,
             periodInDays,
+            activities: [],
         };
 
         const createHabitDB = await this.user.updateOne({ username }, { $push: { habits: habit } });
@@ -163,33 +165,20 @@ class HabitController implements Controller {
         res.send({ message: "Udało się zmienić nazwę nawyku" });
     };
 
-    private editHabitsOrder = async (
+    private createGroups = async (
         req: Request<never, never, EditOrderHabitsData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { habitsID } = req.body;
+        const { habitGroups } = req.body;
         const { username } = req.user;
 
-        const userHabits = await this.user.findOne({ username }, { habits: 1 }).lean();
-
-        const newHabitsOrder = [];
-
-        for (const id of habitsID) {
-            const habit = userHabits.habits.find((habit) => habit._id == id);
-            if (habit) {
-                newHabitsOrder.push(habit);
-            }
-        }
-
-        const newOrderDB = await this.user.updateOne(
+        const habitGroupsDB = await this.user.findOneAndUpdate(
             { username },
-            { $set: { habits: newHabitsOrder } }
+            { $set: { habitGroups: habitGroups } },
+            { new: true }
         );
 
-        if (newOrderDB.modifiedCount === 0)
-            throw new HttpException(400, "Nie udało się zmienić kolejność nawyków");
-
-        res.send({ message: "Udało się zmienić kolejność nawyków" });
+        res.send({ message: "Udało się stworzyć grupy", data: habitGroupsDB.habitGroups });
     };
 
     private deleteHabit = async (
@@ -200,19 +189,24 @@ class HabitController implements Controller {
         const { username } = req.user;
 
         const session = await mongoose.startSession();
-
+        console.log(id);
         try {
             session.startTransaction();
 
-            const deleteHabitFromUserDB = await this.user.updateOne(
-                { username, "habits._id": id },
-                { $pull: { habits: { _id: id } } },
-                { session }
-            );
+            const user = await this.user
+                .findOne({ username }, { habits: 1, habitGroups: 1 })
+                .session(session);
 
-            if (deleteHabitFromUserDB.modifiedCount === 0) {
-                throw new Error();
-            }
+            user.habits = user.habits.filter((habit) => habit._id != id);
+
+            user.habitGroups = user.habitGroups.map((group) => {
+                group.habits = group.habits.filter((habit) => habit != id);
+                return group;
+            });
+
+            const db = await user.save({ session });
+
+            console.log(db);
 
             await this.activity.deleteMany({ habit: id }, { session });
 

@@ -1,5 +1,5 @@
-export interface IGroup {
-    id: string;
+export interface IHabitGroups {
+    _id: string;
     name: string;
     habits: string[];
 }
