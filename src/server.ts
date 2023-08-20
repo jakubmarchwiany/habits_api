@@ -39,13 +39,12 @@ class Server {
             .connect(MONGO_URL, options)
             .then(() => {
                 console.log("Connected to the database");
+                mongoHelper();
             })
             .catch((e) => {
                 console.log(e.reason);
                 console.log("Error connecting to the database");
-            });
-
-        mongoHelper();
+            });      
     }
 
     private initializeMiddlewares() {
