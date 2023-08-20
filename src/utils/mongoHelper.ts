@@ -4,20 +4,21 @@ import path from "path";
 import Activity from "../models/activity/activity_model";
 import User from "../models/user/user_model";
 
-const USERNAME = "kuba";
-
-const filePath = path.join(__dirname, `./${USERNAME}.json`);
-
 export const mongoHelper = async () => {
     // await restartDataBase();
 };
 
 const restartDataBase = async () => {
     await clearDataBase();
-    await createUser(USERNAME, "dev");
-    await prepareHabits();
-    await prepareHabitGroups();
-    await prepareActivities();
+    await createUser("kuba", "dev");
+    await prepareHabits("kuba");
+    await prepareHabitGroups("kuba");
+    await prepareActivities("kuba");
+
+    await createUser("julia", "dev");
+    await prepareHabits("julia");
+    await prepareHabitGroups("julia");
+    await prepareActivities("julia");
 };
 
 const clearDataBase = async () => {
@@ -36,8 +37,9 @@ const createUser = async (username: string, password: string) => {
     await user.save();
 };
 
-const prepareHabits = async () => {
+const prepareHabits = async (username: string) => {
     try {
+        const filePath = path.join(__dirname, `./${username}.json`);
         const data = fs.readFileSync(filePath, "utf8");
         const jsonData = JSON.parse(data);
 
@@ -52,15 +54,15 @@ const prepareHabits = async () => {
             };
         });
 
-        await User.updateOne({ username: USERNAME }, { $set: { habits: habits } });
-
+        await User.updateOne({ username }, { $set: { habits: habits } });
     } catch (err) {
         console.error("Error:", err);
     }
 };
 
-const prepareHabitGroups = async () => {
+const prepareHabitGroups = async (username: string) => {
     try {
+        const filePath = path.join(__dirname, `./${username}.json`);
         const data = fs.readFileSync(filePath, "utf8");
         const jsonData = JSON.parse(data);
 
@@ -73,14 +75,14 @@ const prepareHabitGroups = async () => {
             };
         });
 
-        await User.updateOne({ username: USERNAME }, { $set: { habitGroups: groups } });
+        await User.updateOne({ username }, { $set: { habitGroups: groups } });
     } catch (err) {
         console.error("Error:", err);
     }
 };
 
-const prepareActivities = async () => {
-    const user = await User.findOne({ username: USERNAME });
+const prepareActivities = async (username: string) => {
+    const user = await User.findOne({ username });
 
     const habits = user?.habits;
 

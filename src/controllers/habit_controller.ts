@@ -66,7 +66,7 @@ class HabitController implements Controller {
             catchError(this.deleteHabit)
         );
         this.router.post(
-            "/habit/activity/add",
+            "/habit/activity/create",
             authMiddleware,
             validate(addActivitySchema),
             catchError(this.createActivity)
@@ -114,6 +114,7 @@ class HabitController implements Controller {
             }
 
             const data = { habits: userData.habits, habitGroups: userData.habitGroups };
+            console.log(data);
             res.send({
                 message: "Udało się pobrać nawyki użytkownika",
                 data,
