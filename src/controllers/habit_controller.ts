@@ -38,6 +38,7 @@ class HabitController implements Controller {
 
     private initializeRoutes() {
         this.router.get(`/get_habits`, authMiddleware, catchError(this.getHabits));
+        this.router.get(`/habit/:_id`, authMiddleware, catchError(this.getHabit));
         this.router.post(
             `/habit/create`,
             authMiddleware,
@@ -112,6 +113,38 @@ class HabitController implements Controller {
 
             const data = { habits: userData.habits, habitGroups: userData.habitGroups };
             console.log(data);
+            res.send({
+                message: "Udało się pobrać nawyki użytkownika",
+                data,
+            });
+        } else {
+            throw new HttpException(400, "Nie znaleziono użytkownika");
+        }
+    };
+
+    private getHabit = async (
+        req: Request<{ _id: string }, never, never, { nDays: number }> & ReqUser,
+        res: Response
+    ) => {
+        const { _id } = req.params;
+        const { nDays } = req.query;
+
+        if (!_id) throw new HttpException(400, "Nie podano '_id' nawyku");
+
+        if (!nDays) throw new HttpException(400, "Nie podano 'nDays'");
+
+        const date = new Date();
+        date.setDate(date.getDate() - nDays);
+
+        if (_id) {
+            const user = await this.user.findOne({ "habits._id": _id }, { "habits.$": 1 }).lean();
+            const activity = await this.activity
+                .find({ habit: _id, date: { $gte: date } },{ _id: 1, date: 1 })
+                .sort({ date: 1 })
+                .lean();
+
+            const data = { habit: user.habits[0], activity };
+
             res.send({
                 message: "Udało się pobrać nawyki użytkownika",
                 data,
@@ -229,6 +262,9 @@ class HabitController implements Controller {
         res: Response
     ) => {
         const { habitID, date } = req.body;
+
+        if (await this.activity.exists({ habit: habitID, date: date }))
+            throw new HttpException(400, "Aktywność już istnieje");
 
         const createActivityDB = await this.activity.create({ habit: habitID, date: date });
 

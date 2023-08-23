@@ -13,12 +13,12 @@ const restartDataBase = async () => {
     await createUser("kuba", "dev");
     await prepareHabits("kuba");
     await prepareHabitGroups("kuba");
-    await prepareActivities("kuba");
+    // await prepareActivities("kuba");
 
     await createUser("julia", "dev");
     await prepareHabits("julia");
     await prepareHabitGroups("julia");
-    await prepareActivities("julia");
+    // await prepareActivities("julia");
 };
 
 const clearDataBase = async () => {
