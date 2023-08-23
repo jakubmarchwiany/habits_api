@@ -1,4 +1,5 @@
 import { Request, Response, Router } from "express";
+import mongoose from "mongoose";
 import Controller from "../interfaces/controller_interface";
 import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
@@ -15,9 +16,7 @@ import deleteActivitySchema, {
 import deleteHabitSchema, {
     DeleteHabitData,
 } from "../middleware/schemas/habit/delete_habit_schema";
-import editHabitNameSchema, {
-    EditHabitNameData,
-} from "../middleware/schemas/habit/edit_habit_name_schema";
+import editHabitSchema, { EditHabitData } from "../middleware/schemas/habit/edit_habit_schema";
 import editHabitsOrderSchema, {
     EditOrderHabitsData,
 } from "../middleware/schemas/habit/edit_habits_order_schema";
@@ -25,8 +24,6 @@ import validate from "../middleware/validate";
 import Activity from "../models/activity/activity_model";
 import { IHabit } from "../models/user/habit_interface";
 import User from "../models/user/user_model";
-import mongoose, { ObjectId } from "mongoose";
-import { IActivity } from "../models/activity/activity_interface";
 import { UserActivitiesDB, getUserActivities } from "../utils/mongoDB";
 
 class HabitController implements Controller {
@@ -48,10 +45,10 @@ class HabitController implements Controller {
             catchError(this.createHabit)
         );
         this.router.post(
-            "/habit/edit_name",
+            "/habit/edit",
             authMiddleware,
-            validate(editHabitNameSchema),
-            catchError(this.editHabitName)
+            validate(editHabitSchema),
+            catchError(this.editHabit)
         );
         this.router.post(
             "/habit/create_groups",
@@ -148,22 +145,28 @@ class HabitController implements Controller {
         res.send({ message: "Udało się dodać nawyk", data: habit });
     };
 
-    private editHabitName = async (
-        req: Request<never, never, EditHabitNameData["body"]> & ReqUser,
+    private editHabit = async (
+        req: Request<never, never, EditHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { id, newName } = req.body;
+        const { _id, name, description, periodInDays } = req.body;
         const { username } = req.user;
 
         const editHabitDB = await this.user.updateOne(
-            { username, "habits._id": id },
-            { $set: { "habits.$.name": newName } }
+            { username, "habits._id": _id },
+            {
+                $set: {
+                    "habits.$.name": name,
+                    "habits.$.description": description,
+                    "habits.$.periodInDays": periodInDays,
+                },
+            }
         );
 
         if (editHabitDB.modifiedCount === 0)
-            throw new HttpException(400, "Nie udało się zmienić nazwy nawyku");
+            throw new HttpException(400, "Nie udało się edytować nawyku");
 
-        res.send({ message: "Udało się zmienić nazwę nawyku" });
+        res.send({ message: "Udało się edytować nawyk" });
     };
 
     private createGroups = async (
@@ -186,11 +189,11 @@ class HabitController implements Controller {
         req: Request<never, never, DeleteHabitData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { id } = req.body;
+        const { _id } = req.body;
         const { username } = req.user;
 
         const session = await mongoose.startSession();
-        console.log(id);
+
         try {
             session.startTransaction();
 
@@ -198,10 +201,10 @@ class HabitController implements Controller {
                 .findOne({ username }, { habits: 1, habitGroups: 1 })
                 .session(session);
 
-            user.habits = user.habits.filter((habit) => habit._id != id);
+            user.habits = user.habits.filter((habit) => habit._id != _id);
 
             user.habitGroups = user.habitGroups.map((group) => {
-                group.habits = group.habits.filter((habit) => habit != id);
+                group.habits = group.habits.filter((habit) => habit != _id);
                 return group;
             });
 
@@ -209,7 +212,7 @@ class HabitController implements Controller {
 
             console.log(db);
 
-            await this.activity.deleteMany({ habit: id }, { session });
+            await this.activity.deleteMany({ habit: _id }, { session });
 
             await session.commitTransaction();
             res.send({ message: "Udało się usunąć nawyk" });
@@ -239,9 +242,9 @@ class HabitController implements Controller {
         req: Request<never, never, DeleteActivityData["body"]> & ReqUser,
         res: Response
     ) => {
-        const { id } = req.body;
+        const { _id } = req.body;
 
-        const dbResponse = await this.activity.deleteOne({ _id: id });
+        const dbResponse = await this.activity.deleteOne({ _id });
 
         if (dbResponse.deletedCount === 0)
             throw new HttpException(400, "Nie udało się usunąć aktywności");

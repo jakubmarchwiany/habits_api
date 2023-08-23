@@ -5,7 +5,7 @@ import Activity from "../models/activity/activity_model";
 import User from "../models/user/user_model";
 
 export const mongoHelper = async () => {
-    await restartDataBase();
+    // await restartDataBase();
 };
 
 const restartDataBase = async () => {

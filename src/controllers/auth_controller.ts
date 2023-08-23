@@ -2,16 +2,12 @@ import bcrypt from "bcrypt";
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
 import Controller from "../interfaces/controller_interface";
-import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
-import HttpException from "../middleware/exceptions/http";
 import WrongCredentialsException from "../middleware/exceptions/wrong-credentials-exception";
 import loginUserSchema, { LoginUserData } from "../middleware/schemas/auth/login_user_schema";
-import { CreateHabitData } from "../middleware/schemas/habit/create_habit_schema";
 import validate from "../middleware/validate";
 import { DataStoredInToken } from "../models/data_stored_in_token";
 import User from "../models/user/user_model";
-import { UserActivitiesDB, getUserActivities } from "../utils/mongoDB";
 
 const { JWT_SECRET, TOKEN_EXPIRE_AFTER } = process.env;
 
