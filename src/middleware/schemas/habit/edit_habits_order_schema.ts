@@ -2,7 +2,7 @@ import { InferType, array, object } from "yup";
 
 const editHabitsOrderSchema = object({
     body: object({
-        habitsID: array(),
+        habitGroups: array(),
     }),
 });
 export type EditOrderHabitsData = InferType<typeof editHabitsOrderSchema>;

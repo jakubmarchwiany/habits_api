@@ -3,7 +3,7 @@ import { cleanEnv, num, port, str } from "envalid";
 function validateEnv() {
     cleanEnv(process.env, {
         // environment
-        NODE_ENV: str({ choices: ["development", "production"] }),
+        NODE_ENV: str({ choices: ["development", "production","test"] }),
 
         // server running port
         PORT: port(),
@@ -14,6 +14,9 @@ function validateEnv() {
         // authentication configuration
         JWT_SECRET: str(),
         TOKEN_EXPIRE_AFTER: num(),
+
+        // database configuration
+        MONGO_URL: str(),
     });
 }
 

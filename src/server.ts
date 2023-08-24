@@ -2,12 +2,13 @@ import { json, urlencoded } from "body-parser";
 import cookieParser from "cookie-parser";
 import cors, { CorsOptions } from "cors";
 import express from "express";
-
+import mongoose, { ConnectOptions } from "mongoose";
 import Controller from "./interfaces/controller_interface";
 import errorMiddleware from "./middleware/error";
 import HttpException from "./middleware/exceptions/http";
+import { mongoHelper } from "./utils/mongoHelper";
 
-const { WHITELISTED_DOMAINS } = process.env;
+const { WHITELISTED_DOMAINS, MONGO_URL } = process.env;
 
 const WHITELIST = WHITELISTED_DOMAINS ? WHITELISTED_DOMAINS.split(",") : [];
 
@@ -22,10 +23,28 @@ class Server {
 
     constructor(controllers: Controller[]) {
         this.app = express();
+        this.connectToTheDatabase();
         this.initializeCors();
         this.initializeMiddlewares();
         this.initializeControllers(controllers);
         this.initializeErrorHandling();
+    }
+
+    private connectToTheDatabase() {
+        const options: ConnectOptions = {
+            serverSelectionTimeoutMS: 1000, // Timeout after 5s instead of 30s
+        };
+
+        mongoose
+            .connect(MONGO_URL, options)
+            .then(() => {
+                console.log("Connected to the database");
+                mongoHelper();
+            })
+            .catch((e) => {
+                console.log(e.reason);
+                console.log("Error connecting to the database");
+            });      
     }
 
     private initializeMiddlewares() {
