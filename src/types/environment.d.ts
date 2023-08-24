@@ -14,6 +14,9 @@ declare global {
             // authentication configuration
             JWT_SECRET: string;
             TOKEN_EXPIRE_AFTER: string;
+
+            // database configuration
+            MONGO_URL: string;
         }
     }
 }

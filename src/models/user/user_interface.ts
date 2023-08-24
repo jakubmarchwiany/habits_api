@@ -1,15 +1,12 @@
-// import { Model, ObjectId, Schema } from "mongoose";
+import { Model, ObjectId } from "mongoose";
+import { IHabit } from "./habit_interface";
+import { IHabitGroups } from "./group_interface";
 
-// export type Habit = {
-//     name: string;
-//     numberOfActivitiesPerDay: number;
-//     activities: [data: string, quantity?: number][];
-// };
-
-// export interface IUser {
-//     _id: string;
-//     version: number;
-//     userName: string;
-//     habitsInfo: Habit[];
-// }
-// export type UserModel = Model<IUser, unknown, unknown>;
+export interface IUser {
+    _id: ObjectId;
+    username: string;
+    password: string;
+    habits: IHabit[];
+    habitGroups: IHabitGroups[];
+}
+export type UserModel = Model<IUser, unknown, unknown>;

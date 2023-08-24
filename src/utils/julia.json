@@ -1,0 +1,93 @@
+{
+    "version": 81,
+    "userName": "julia",
+    "habits": [
+        {
+            "name": "Suple",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a59f"
+            }
+        },
+        {
+            "name": "Stretching",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a0"
+            }
+        },
+        {
+            "name": "Split stretch",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a1"
+            }
+        },
+        {
+            "name": "Aktywność",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a2"
+            }
+        },
+        {
+            "name": "Woda 2,5l",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a3"
+            }
+        },
+        {
+            "name": "Książka",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a4"
+            }
+        },
+        {
+            "name": "Kalorie",
+            "description": "",
+            "periodInDays": 1,
+            "_id": {
+                "$oid": "64e20d02d56b1f992ca3a5a5"
+            }
+        }
+    ],
+    "habitGroups": [
+        {
+            "name": "ciało",
+            "habits": [
+                "64e20d02d56b1f992ca3a59f",
+                "64e20d02d56b1f992ca3a5a3",
+                "64e20d02d56b1f992ca3a5a5"
+            ],
+            "_id": {
+                "$oid": "64e20d6dd56b1f992ca3a5ae"
+            }
+        },
+        {
+            "name": "aktywności",
+            "habits": [
+                "64e20d02d56b1f992ca3a5a2",
+                "64e20d02d56b1f992ca3a5a0",
+                "64e20d02d56b1f992ca3a5a1"
+            ],
+            "_id": {
+                "$oid": "64e20d6dd56b1f992ca3a5af"
+            }
+        },
+        {
+            "name": "dobre nawyki",
+            "habits": ["64e20d02d56b1f992ca3a5a4"],
+            "_id": {
+                "$oid": "64e20d6dd56b1f992ca3a5b0"
+            }
+        }
+    ]
+}
