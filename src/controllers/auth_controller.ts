@@ -21,8 +21,13 @@ class AuthenticationController implements Controller {
     }
 
     private initializeRoutes() {
+        this.router.get(`/working`, this.working);
         this.router.post(`/login`, validate(loginUserSchema), catchError(this.loggingIn));
     }
+
+    private working = async (req: Request, res: Response) => {
+        res.status(200).send();
+    };
 
     private loggingIn = async (
         req: Request<never, never, LoginUserData["body"]>,

@@ -4,10 +4,10 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "NODE_ENV=production node -r dotenv/config app.js dotenv_config_path=.env.production",
-        "start-dev": "NODE_ENV=production node -r dotenv/config app.js dotenv_config_path=.env.production",
-        "mongo": "start_mongoDB.bat",
+        "pro": "NODE_ENV=production node -r dotenv/config app.js dotenv_config_path=.env.production",
+        "pro_test": "NODE_ENV=production node -r dotenv/config app.js dotenv_config_path=.env.production",
         "dev": "NODE_ENV=development nodemon --exec ts-node -r dotenv/config ./src/app.ts dotenv_config_path=./.env.development",
+        "jest": "DOTENV_CONFIG_PATH=.env.test jest --watch --setupFiles=dotenv/config",
         "build": "rimraf ./build && tsc && cp package.json package-lock.json {.env.production} ./build/"
     },
     "keywords": [],
@@ -30,17 +30,26 @@
         "yup": "^1.2.0"
     },
     "devDependencies": {
+        "@babel/core": "^7.22.10",
+        "@babel/preset-env": "^7.22.10",
+        "@babel/preset-typescript": "^7.22.5",
+        "@jest/globals": "^29.6.3",
         "@swc/cli": "^0.1.62",
         "@swc/core": "^1.3.62",
         "@types/cookie-parser": "^1.4.3",
         "@types/cors": "^2.8.13",
         "@types/express": "^4.17.17",
+        "@types/jest": "^29.5.4",
         "@types/jsonfile": "^6.1.1",
         "@types/jsonwebtoken": "^9.0.2",
         "@types/node": "^20.5.4",
+        "@types/supertest": "^2.0.11",
         "@types/uniqid": "^5.3.2",
+        "babel-jest": "^29.6.3",
         "nodemon": "^3.0.1",
-        "ts-node": "^10.9.1",
-        "typescript": "^5.1.3"
+        "supertest": "^6.3.3",
+        "ts-jest": "^29.1.1",
+        "typescript": "^5.1.3",
+        "ts-node": "^10.2.1"
     }
 }

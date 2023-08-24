@@ -12,8 +12,8 @@
         "resolveJsonModule": true,
         "forceConsistentCasingInFileNames": true,
         "moduleResolution": "node",
-        "strictNullChecks": false,
-        "typeRoots": ["node_modules/yup"]
+        "strictNullChecks": false
+        // "typeRoots": ["node_modules/yup"]
     },
     "ts-node": {
         "swc": true

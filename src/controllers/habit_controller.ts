@@ -139,7 +139,7 @@ class HabitController implements Controller {
         if (_id) {
             const user = await this.user.findOne({ "habits._id": _id }, { "habits.$": 1 }).lean();
             const activity = await this.activity
-                .find({ habit: _id, date: { $gte: date } },{ _id: 1, date: 1 })
+                .find({ habit: _id, date: { $gte: date } }, { _id: 1, date: 1 })
                 .sort({ date: 1 })
                 .lean();
 
