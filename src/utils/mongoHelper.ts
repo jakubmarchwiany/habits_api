@@ -5,7 +5,7 @@ import Activity from "../models/activity/activity_model";
 import User from "../models/user/user_model";
 
 export const mongoHelper = async () => {
-    await restartDataBase();
+    // await restartDataBase();
 };
 
 const restartDataBase = async () => {
@@ -13,12 +13,12 @@ const restartDataBase = async () => {
     await createUser("kuba", "kochamciebiemilion");
     await prepareHabits("kuba");
     await prepareHabitGroups("kuba");
-    // await prepareActivities("kuba");
+    await prepareActivities("kuba");
 
     await createUser("julia", "kochamciebiemilion");
     await prepareHabits("julia");
     await prepareHabitGroups("julia");
-    // await prepareActivities("julia");
+    await prepareActivities("julia");
 };
 
 const clearDataBase = async () => {

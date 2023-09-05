@@ -112,7 +112,6 @@ class HabitController implements Controller {
             }
 
             const data = { habits: userData.habits, habitGroups: userData.habitGroups };
-            console.log(data);
             res.send({
                 message: "Udało się pobrać nawyki użytkownika",
                 data,
@@ -242,8 +241,6 @@ class HabitController implements Controller {
             });
 
             const db = await user.save({ session });
-
-            console.log(db);
 
             await this.activity.deleteMany({ habit: _id }, { session });
 
