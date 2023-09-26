@@ -5,21 +5,25 @@ import authMiddleware, { ReqUser } from "../middleware/authentication";
 import catchError from "../middleware/catch_error";
 import HttpException from "../middleware/exceptions/http";
 import addActivitySchema, {
-    AddActivityData,
+    AddActivityData
 } from "../middleware/schemas/habit/add_activity_schema";
 import createHabitSchema, {
-    CreateHabitData,
+    CreateHabitData
 } from "../middleware/schemas/habit/create_habit_schema";
 import deleteActivitySchema, {
-    DeleteActivityData,
+    DeleteActivityData
 } from "../middleware/schemas/habit/delete_activity_schema";
 import deleteHabitSchema, {
-    DeleteHabitData,
+    DeleteHabitData
 } from "../middleware/schemas/habit/delete_habit_schema";
 import editHabitSchema, { EditHabitData } from "../middleware/schemas/habit/edit_habit_schema";
 import editHabitsOrderSchema, {
-    EditOrderHabitsData,
+    EditOrderHabitsData
 } from "../middleware/schemas/habit/edit_habits_order_schema";
+import getHabitActivitiesSchema, {
+    GetHabitActivitiesData
+} from "../middleware/schemas/habit/get_habit_activities_schema";
+import getHabitsSchema, { GetHabitsData } from "../middleware/schemas/habit/get_habits_schema";
 import validate from "../middleware/validate";
 import Activity from "../models/activity/activity_model";
 import { IHabit } from "../models/user/habit_interface";
@@ -37,8 +41,18 @@ class HabitController implements Controller {
     }
 
     private initializeRoutes() {
-        this.router.get(`/get_habits`, authMiddleware, catchError(this.getHabits));
-        this.router.get(`/habit/:_id`, authMiddleware, catchError(this.getHabit));
+        this.router.get(
+            `/get_habits`,
+            authMiddleware,
+            validate(getHabitsSchema),
+            catchError(this.getUserHabits)
+        );
+        this.router.get(
+            `/habits/:_id/activities`,
+            authMiddleware,
+            validate(getHabitActivitiesSchema),
+            catchError(this.getHabitActivities)
+        );
         this.router.post(
             `/habit/create`,
             authMiddleware,
@@ -76,18 +90,14 @@ class HabitController implements Controller {
             catchError(this.deleteActivity)
         );
     }
-    private getHabits = async (
-        req: Request<never, never, CreateHabitData["body"], { days: number; isUser: string }> &
-            ReqUser,
+    private getUserHabits = async (
+        req: Request<never, never, never, GetHabitsData["query"]> & ReqUser,
         res: Response
     ) => {
         const { username, dearUsername } = req.user;
-        const { days, isUser } = req.query;
+        const { dateFrom, isUser } = req.query;
 
         const user = isUser === "true" ? username : dearUsername;
-
-        const dateAgo = new Date();
-        dateAgo.setDate(dateAgo.getDate() - days);
 
         const userData = await this.user
             .findOne({ username: user }, { habits: 1, habitGroups: 1 })
@@ -95,9 +105,10 @@ class HabitController implements Controller {
 
         if (userData) {
             const userHabitsID = userData.habits.map((habit) => habit._id);
+            console.log(userHabitsID);
 
             const userActivities = (await getUserActivities(
-                dateAgo,
+                new Date(dateFrom),
                 userHabitsID
             )) as UserActivitiesDB[];
 
@@ -114,43 +125,35 @@ class HabitController implements Controller {
             const data = { habits: userData.habits, habitGroups: userData.habitGroups };
             res.send({
                 message: "Udało się pobrać nawyki użytkownika",
-                data,
+                data
             });
         } else {
             throw new HttpException(400, "Nie znaleziono użytkownika");
         }
     };
 
-    private getHabit = async (
-        req: Request<{ _id: string }, never, never, { nDays: number }> & ReqUser,
+    private getHabitActivities = async (
+        req: Request<
+            GetHabitActivitiesData["params"],
+            never,
+            never,
+            GetHabitActivitiesData["query"]
+        > &
+            ReqUser,
         res: Response
     ) => {
         const { _id } = req.params;
-        const { nDays } = req.query;
+        const { dateFrom } = req.query;
 
-        if (!_id) throw new HttpException(400, "Nie podano '_id' nawyku");
+        const activities = await this.activity
+            .find({ habit: _id, date: { $gte: new Date(dateFrom) } }, { _id: 1, date: 1 })
+            .sort({ date: 1 })
+            .lean();
 
-        if (!nDays) throw new HttpException(400, "Nie podano 'nDays'");
-
-        const date = new Date();
-        date.setDate(date.getDate() - nDays);
-
-        if (_id) {
-            const user = await this.user.findOne({ "habits._id": _id }, { "habits.$": 1 }).lean();
-            const activity = await this.activity
-                .find({ habit: _id, date: { $gte: date } }, { _id: 1, date: 1 })
-                .sort({ date: 1 })
-                .lean();
-
-            const data = { habit: user.habits[0], activity };
-
-            res.send({
-                message: "Udało się pobrać nawyki użytkownika",
-                data,
-            });
-        } else {
-            throw new HttpException(400, "Nie znaleziono użytkownika");
-        }
+        res.send({
+            message: "Udało się pobrać nawyki użytkownika",
+            data: activities
+        });
     };
 
     private createHabit = async (
@@ -166,7 +169,7 @@ class HabitController implements Controller {
             name,
             description,
             periodInDays,
-            activities: [],
+            activities: []
         };
 
         const createHabitDB = await this.user.updateOne({ username }, { $push: { habits: habit } });
@@ -190,8 +193,8 @@ class HabitController implements Controller {
                 $set: {
                     "habits.$.name": name,
                     "habits.$.description": description,
-                    "habits.$.periodInDays": periodInDays,
-                },
+                    "habits.$.periodInDays": periodInDays
+                }
             }
         );
 
@@ -267,7 +270,7 @@ class HabitController implements Controller {
 
         res.send({
             message: "Udało się dodać aktywność",
-            data: { activityID: createActivityDB._id },
+            data: { activityID: createActivityDB._id }
         });
     };
 

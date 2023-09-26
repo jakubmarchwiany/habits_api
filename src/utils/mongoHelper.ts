@@ -6,6 +6,9 @@ import User from "../models/user/user_model";
 
 export const mongoHelper = async () => {
     // await restartDataBase();
+
+    // const activity = await Activity.findById("6512712d881c1b1fdcede4f2");
+    // console.log(activity.date.toLocaleString());
 };
 
 const restartDataBase = async () => {
@@ -32,7 +35,7 @@ const createUser = async (username: string, password: string) => {
         username,
         password,
         habits: [],
-        habitsGroups: [],
+        habitsGroups: []
     });
     await user.save();
 };
@@ -50,7 +53,7 @@ const prepareHabits = async (username: string) => {
                 _id: habit._id.$oid,
                 name: habit.name,
                 description: "",
-                periodInDays: 1,
+                periodInDays: 1
             };
         });
 
@@ -71,7 +74,7 @@ const prepareHabitGroups = async (username: string) => {
         const groups = userHabitGroups.map((group: any) => {
             return {
                 name: group.name,
-                habits: group.habits,
+                habits: group.habits
             };
         });
 
@@ -90,11 +93,15 @@ const prepareActivities = async (username: string) => {
     if (habits) {
         for (let i = 0; i < 41; i++) {
             habits.map((habit: any) => {
-                if (Math.random() > 0.66666)
+                if (Math.random() > 0.66666) {
+                    const newDate = new Date(new Date().setDate(new Date().getDate() - i));
+                    newDate.setHours(0, 0, 0, 0);
+
                     all.push({
                         habit: habit._id,
-                        date: new Date(new Date().setDate(new Date().getDate() - i)),
+                        date: newDate.toLocaleString()
                     });
+                }
             });
         }
 

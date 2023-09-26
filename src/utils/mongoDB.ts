@@ -1,14 +1,14 @@
 import { IActivity } from "../models/activity/activity_interface";
 import Activity from "../models/activity/activity_model";
 
-export const getUserActivities = (date: Date, habitsID: string[]) => {
+export const getUserActivities = (dateFrom: Date, habitsID: string[]) => {
     return new Promise(async (resolve, reject) =>
         resolve(
             await Activity.aggregate([
                 {
                     $match: {
                         habit: { $in: habitsID },
-                        date: { $gte: date },
+                        date: { $gte: dateFrom },
                     },
                 },
                 {

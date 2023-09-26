@@ -32,9 +32,10 @@ class Server {
 
     private connectToTheDatabase() {
         const options: ConnectOptions = {
-            serverSelectionTimeoutMS: 1000, // Timeout after 5s instead of 30s
+            serverSelectionTimeoutMS: 1000
+            // Timeout after 5s instead of 30s
         };
-
+        mongoose.set("strictQuery", true);
         mongoose
             .connect(MONGO_URL, options)
             .then(() => {
@@ -44,7 +45,7 @@ class Server {
             .catch((e) => {
                 console.log(e.reason);
                 console.log("Error connecting to the database");
-            });      
+            });
     }
 
     private initializeMiddlewares() {
@@ -63,7 +64,7 @@ class Server {
                     callback(new Error("Not allowed by CORS"));
                 }
             },
-            credentials: true,
+            credentials: true
         };
         this.app.use(cors(corsOptions));
     }
