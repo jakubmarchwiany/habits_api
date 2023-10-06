@@ -1,91 +1,89 @@
 import { json, urlencoded } from "body-parser";
-import cookieParser from "cookie-parser";
+import compression from "compression";
 import cors, { CorsOptions } from "cors";
 import express from "express";
 import mongoose, { ConnectOptions } from "mongoose";
-import Controller from "./interfaces/controller_interface";
-import errorMiddleware from "./middleware/error";
-import HttpException from "./middleware/exceptions/http";
-import { mongoHelper } from "./utils/mongoHelper";
 
-const { WHITELISTED_DOMAINS, MONGO_URL } = process.env;
+import { Controller } from "./controllers/controller.type";
+import { errorMiddleware } from "./middleware/error.middleware";
+import { HttpException } from "./middleware/exceptions/http.exception";
+import { ENV } from "./utils/validate_env";
+
+const { API_PREFIX, MONGO_URL, WHITELISTED_DOMAINS, PORT } = ENV;
 
 const WHITELIST = WHITELISTED_DOMAINS ? WHITELISTED_DOMAINS.split(",") : [];
 
-function sleepMiddleware(delay: any) {
-    return function (req: any, res: any, next: any) {
-        setTimeout(next, delay);
-    };
-}
-
 class Server {
-    public app: express.Application;
+	public app: express.Application;
 
-    constructor(controllers: Controller[]) {
-        this.app = express();
-        this.connectToTheDatabase();
-        this.initializeCors();
-        this.initializeMiddlewares();
-        this.initializeControllers(controllers);
-        this.initializeErrorHandling();
-    }
+	constructor(controllers: Controller[]) {
+		this.app = express();
 
-    private connectToTheDatabase() {
-        const options: ConnectOptions = {
-            serverSelectionTimeoutMS: 1000
-            // Timeout after 5s instead of 30s
-        };
-        mongoose.set("strictQuery", true);
-        mongoose
-            .connect(MONGO_URL, options)
-            .then(() => {
-                console.log("Connected to the database");
-                mongoHelper();
-            })
-            .catch((e) => {
-                console.log(e.reason);
-                console.log("Error connecting to the database");
-            });
-    }
+		this.initMiddlewares();
 
-    private initializeMiddlewares() {
-        // this.app.use(sleepMiddleware(0));
-        this.app.use(json({ limit: "50mb" }));
-        this.app.use(urlencoded({ limit: "50mb", extended: true }));
-        this.app.use(cookieParser());
-    }
+		this.connectToTheDatabase();
 
-    private initializeCors() {
-        const corsOptions: CorsOptions = {
-            origin: function (origin, callback) {
-                if (WHITELIST.indexOf(origin!) !== -1 || !origin) {
-                    callback(null, true);
-                } else {
-                    callback(new Error("Not allowed by CORS"));
-                }
-            },
-            credentials: true
-        };
-        this.app.use(cors(corsOptions));
-    }
+		this.initializeControllers(controllers);
 
-    private initializeControllers(controllers: Controller[]) {
-        controllers.forEach((controller) => {
-            this.app.use("/bobciowo" + controller.path, controller.router);
-        });
-        this.app.use("*", (req, res, next) => {
-            next(new HttpException(404, "Not found"));
-        });
-    }
+		this.initErrorMiddleware();
+	}
 
-    private initializeErrorHandling() {
-        this.app.use(errorMiddleware);
-    }
+	private initMiddlewares(): void {
+		this.initializeCors();
 
-    public listen() {
-        this.app.listen(process.env.PORT || 8080, () => {
-            console.log(`Server listening on the port ${process.env.PORT || 8080}`);
-        });
-    }
+		this.app.use(json({ limit: "10MB" }));
+
+		this.app.use(urlencoded({ extended: true, limit: "10MB" }));
+
+		this.app.use(compression());
+	}
+
+	private initializeCors(): void {
+		const corsOptions: CorsOptions = {
+			credentials: true,
+			origin: WHITELIST
+		};
+
+		this.app.use(cors(corsOptions));
+	}
+
+	private connectToTheDatabase(): void {
+		const options: ConnectOptions = {
+			serverSelectionTimeoutMS: 1000
+		};
+
+		mongoose.set("strictQuery", true);
+
+		mongoose
+			.connect(MONGO_URL, options)
+			.then(() => {
+				console.log("Connected to the database");
+			})
+			.catch(() => {
+				console.log("Error connecting to the database");
+			});
+	}
+
+	private initializeControllers(controllers: Controller[]): void {
+		controllers.forEach((controller) => {
+			this.app.use(API_PREFIX + controller.path, controller.router);
+		});
+
+		this.app.use("*", (req, res, next) => {
+			next(new HttpException(404, "Not found"));
+		});
+	}
+
+	private initErrorMiddleware(): void {
+		this.app.use(errorMiddleware);
+	}
+
+	public listen(): void {
+		this.app.listen(PORT, () => {
+			console.log(
+				`Server listening on the port ${PORT}\nhttp://localhost:${PORT}${API_PREFIX}`
+			);
+		});
+	}
 }
 export default Server;
