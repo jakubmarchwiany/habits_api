@@ -24,3 +24,6 @@ build
 *.njsproj
 *.sln
 *.sw?
+
+users.json
+activities.json

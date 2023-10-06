@@ -1,0 +1,12 @@
+{
+	"dictionaries": ["typescript", "css"],
+	"language": "en,pl",
+	"words": ["envalid", "reduxjs", "Bobcia", "lockb", "knip", "bunx", "fontsource", "outdir"],
+	"ignorePaths": [
+		"node_modules",
+		"build",
+		"bun.lockb",
+		".commitlint.config.cjs",
+		"src/utils/generator"
+	]
+}
