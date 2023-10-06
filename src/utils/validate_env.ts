@@ -1,23 +1,20 @@
 import { cleanEnv, num, port, str } from "envalid";
 
-function validateEnv() {
-    cleanEnv(process.env, {
-        // environment
-        NODE_ENV: str({ choices: ["development", "production","test"] }),
+export const ENV = cleanEnv(process.env, {
+	// environment
+	NODE_ENV: str({ choices: ["development", "production", "test"] }),
 
-        // server running port
-        PORT: port(),
+	// server running port
+	API_PREFIX: str(),
+	PORT: port(),
 
-        // cors Options
-        WHITELISTED_DOMAINS: str(),
+	// cors Options
+	WHITELISTED_DOMAINS: str(),
 
-        // authentication configuration
-        JWT_SECRET: str(),
-        TOKEN_EXPIRE_AFTER: num(),
+	// authentication configuration
+	JWT_SECRET: str(),
+	TOKEN_EXPIRE_AFTER: str(),
 
-        // database configuration
-        MONGO_URL: str(),
-    });
-}
-
-export default validateEnv;
+	// database configuration
+	MONGO_URL: str()
+});
