@@ -1,12 +1,24 @@
 {
 	"dictionaries": ["typescript", "css"],
 	"language": "en,pl",
-	"words": ["envalid", "reduxjs", "Bobcia", "lockb", "knip", "bunx", "fontsource", "outdir"],
+	"words": [
+		"commitlint",
+		"envalid",
+		"knip",
+		"reduxjs",
+		"Bobcia",
+		"lockb",
+		"knip",
+		"bunx",
+		"fontsource",
+		"outdir"
+	],
 	"ignorePaths": [
 		"node_modules",
 		"build",
 		"bun.lockb",
 		".commitlint.config.cjs",
 		"src/utils/generator"
-	]
+	],
+	"import": ["node_modules/cspell-dict-pl_pl/cspell-ext.json"]
 }
