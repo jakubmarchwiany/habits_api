@@ -77,7 +77,6 @@ export class HabitsController implements Controller {
 	private getHabits = async (
 		req: AuthRequest<undefined, undefined, undefined, GetHabitsData["query"]>,
 		res: MyResponse<{
-			dearId: Types.ObjectId;
 			habits: HabitWithActivity[];
 			groupsOfHabits: GroupOfHabits[];
 		}>
@@ -99,7 +98,6 @@ export class HabitsController implements Controller {
 			const habitsExt = await prepareHabits(user.habits, searchFromData);
 
 			const data = {
-				dearId: user.dearId,
 				habits: habitsExt,
 				groupsOfHabits: user.groupsOfHabits
 			};
