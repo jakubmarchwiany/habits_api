@@ -1,7 +1,8 @@
 module.exports = {
 	env: {
 		es2022: true,
-		node: true
+		node: true,
+		jest: true
 	},
 	extends: [
 		"eslint:recommended",
@@ -10,7 +11,7 @@ module.exports = {
 		"plugin:perfectionist/recommended-natural",
 		"plugin:@typescript-eslint/recommended",
 		"plugin:regexp/recommended",
-		"plugin:vitest/recommended"
+		"plugin:jest/recommended"
 	],
 	overrides: [
 		{
@@ -18,15 +19,12 @@ module.exports = {
 			files: ["**/*.ts"],
 			parser: "@typescript-eslint/parser",
 			rules: {
-				// These off-by-default rules work well for this repo and we like them on.
-
 				"logical-assignment-operators": [
 					"error",
 					"always",
 					{ enforceForIfStatements: true }
 				],
 				"operator-assignment": "error"
-				// These on-by-default rules don't work well for this repo and we like them off.
 			}
 		},
 		{
@@ -41,7 +39,6 @@ module.exports = {
 				project: "./tsconfig.eslint.json"
 			},
 			rules: {
-				// These more-strict-by-default rules don't work well for this repo and we like them less strict.
 				"@typescript-eslint/await-thenable": "off",
 				"@typescript-eslint/consistent-type-definitions": ["error", "type"],
 				"@typescript-eslint/explicit-function-return-type": "error",
@@ -69,14 +66,12 @@ module.exports = {
 					{ blankLine: "any", next: "directive", prev: "directive" },
 					{ blankLine: "always", next: "*", prev: "expression" },
 					{ blankLine: "any", next: "break", prev: "expression" }
-					// { blankLine: "any", prev: "expression", next: "" }
 				],
 				"@typescript-eslint/prefer-nullish-coalescing": [
 					"error",
 					{ ignorePrimitives: true }
 				],
 				curly: "error",
-				// These off-by-default rules work well for this repo and we like them on.
 				"deprecation/deprecation": "error",
 				"n/no-missing-import": "off"
 			}
@@ -98,11 +93,14 @@ module.exports = {
 			}
 		},
 		{
-			files: "**/*.test.ts",
+			files: ["**/*.test.ts"],
+			// excludedFiles: ["___tests___"],
 			rules: {
 				// These on-by-default rules aren't useful in test files.
 				"@typescript-eslint/no-unsafe-assignment": "off",
-				"@typescript-eslint/no-unsafe-call": "off"
+				"@typescript-eslint/no-unsafe-call": "off",
+				"@typescript-eslint/no-unsafe-member-access": "off",
+				"@typescript-eslint/no-explicit-any": "off"
 			}
 		}
 	],
@@ -114,7 +112,7 @@ module.exports = {
 		"no-only-tests",
 		"perfectionist",
 		"regexp",
-		"vitest"
+		"jest"
 	],
 	reportUnusedDisableDirectives: true,
 	root: true,
@@ -141,7 +139,7 @@ module.exports = {
 		"n/no-unpublished-import": [
 			"error",
 			{
-				allowModules: ["vitest"]
+				allowModules: ["supertest", "jest", "dotenv"]
 			}
 		],
 		"object-shorthand": "error"
