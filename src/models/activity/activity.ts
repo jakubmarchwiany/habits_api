@@ -8,6 +8,7 @@ import {
 } from "mongoose";
 
 const activitySchema = new Schema({
+	_id: { required: true, type: SchemaTypes.ObjectId },
 	date: { index: true, required: true, type: Date },
 	habitId: { index: true, required: true, type: SchemaTypes.ObjectId }
 });
