@@ -1,12 +1,17 @@
 /* eslint-disable @typescript-eslint/ban-types */
-
 import { NextFunction, Request, Response } from "express";
+
+import { ENV } from "./validate_env";
+
+const { isDev } = ENV;
 
 export const catchError =
 	(func: Function) =>
 	(req: Request, res: Response, next: NextFunction): void => {
 		Promise.resolve(func(req, res, next)).catch((error: Error) => {
-			console.log(error);
+			if (isDev) {
+				console.log(error);
+			}
 
 			next(error);
 		});
