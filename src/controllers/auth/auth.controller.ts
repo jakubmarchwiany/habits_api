@@ -1,7 +1,7 @@
 import { Request, Router } from "express";
 import { sign } from "jsonwebtoken";
 
-import { AuthRequest, MyResponse, authMiddleware } from "../../middleware/auth.middleware";
+import { MyResponse } from "../../middleware/auth.middleware";
 import { WrongCredentialsException } from "../../middleware/exceptions/wrong_credentials.exception";
 import { LoginData, loginSchema } from "../../middleware/schemas/auth/login.schema";
 import { validate } from "../../middleware/validate.middleware";
