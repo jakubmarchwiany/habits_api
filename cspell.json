@@ -18,7 +18,7 @@
 		"build",
 		"bun.lockb",
 		".commitlint.config.cjs",
-		"src/utils/generator"
+		"src/__tests__/generator"
 	],
 	"import": ["node_modules/cspell-dict-pl_pl/cspell-ext.json"]
 }

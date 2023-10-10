@@ -4,37 +4,26 @@ import path from "path";
 
 import { ActivityModel } from "../../models/activity/activity";
 import { UserModel } from "../../models/user/user";
-import { ENV } from "../validate_env";
+import { ENV } from "../../utils/validate_env";
 
 const { MONGO_URL } = ENV;
 
-const connectToTheDatabase = (): void => {
+reloadDatabase();
+
+export async function reloadDatabase(): Promise<void> {
 	const options: ConnectOptions = {
 		serverSelectionTimeoutMS: 1000
 	};
 
 	mongoose.set("strictQuery", true);
 
-	mongoose
-		.connect(MONGO_URL, options)
-		.then(() => {
-			console.log("Connected to the database");
+	await mongoose.connect(MONGO_URL, options);
 
-			restartDataBase();
-		})
-		.catch(() => {
-			console.log("Error connecting to the database");
-		});
-};
-
-connectToTheDatabase();
-
-async function restartDataBase(): Promise<void> {
 	await clearDataFromDatabase();
 
 	await loadDataToDatabase();
 
-	console.log("Server restart");
+	console.log("Database reload");
 }
 
 async function clearDataFromDatabase(): Promise<void> {
@@ -47,7 +36,7 @@ type UserData = {
 	_id: { $oid: string };
 	username: string;
 	password: string;
-	dearId: string;
+	dearId: { $oid: string };
 	habits: { _id: { $oid: string }; name: string; description: string; periodInDays: number }[];
 	groupsOfHabits: { _id: { $oid: string }; name: string; habits: string[] }[];
 };
@@ -55,7 +44,7 @@ type UserData = {
 type ActivityData = {
 	_id: { $oid: string };
 	date: { $date: Date };
-	habit: { $oid: string };
+	habitId: { $oid: string };
 };
 
 async function loadDataToDatabase(): Promise<void> {
@@ -67,7 +56,7 @@ async function loadDataToDatabase(): Promise<void> {
 			_id: u._id.$oid,
 			username: u.username,
 			password: u.password,
-			dearId: u.dearId,
+			dearId: u.dearId.$oid,
 			habits: u.habits.map((h) => {
 				const { _id, description, name, periodInDays } = h;
 
@@ -87,7 +76,7 @@ async function loadDataToDatabase(): Promise<void> {
 	const activitiesData = JSON.parse(fs.readFileSync(activitiesPath, "utf8")) as ActivityData[];
 
 	const activities = activitiesData.map((a) => {
-		const { _id, date, habit } = a;
+		const { _id, date, habitId: habit } = a;
 
 		return { _id: _id.$oid, date: date.$date, habitId: habit.$oid };
 	});
