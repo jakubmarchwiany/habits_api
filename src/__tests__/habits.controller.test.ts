@@ -1,15 +1,14 @@
-import * as dotenv from "dotenv";
-import * as request from "supertest";
+import { beforeAll, describe, expect, it } from "bun:test";
+import request, { Response } from "supertest";
 
-dotenv.config({ path: ".env.test" });
+import { authGetRequest, authPostRequest, expectedBody } from "./useful";
+import { ENV_TESTS } from "./validate_env";
 
-import { authGetRequest, authPostRequest, expectedBody, myAfterEach } from "./useful";
-
-const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY } = process.env;
+const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY } = ENV_TESTS;
 
 describe("Habits controller", () => {
 	let token: string;
-	let res: request.Response;
+	let res: Response;
 
 	beforeAll(async () => {
 		const res = await request(API_URL).post("/auth/login").send({
@@ -20,15 +19,11 @@ describe("Habits controller", () => {
 		token = res.body.data.token;
 	});
 
-	afterEach(() => {
-		myAfterEach(res);
-	});
-
 	describe("/habits", () => {
 		it("should_return_200_for_valid_dateFrom_myHabits", async () => {
 			const pastDate = new Date();
 
-			pastDate.setDate(new Date().getDate() - parseInt(DAYS_FROM_TODAY!));
+			pastDate.setDate(new Date().getDate() - DAYS_FROM_TODAY);
 
 			res = await authGetRequest(`/habits`, token)
 				.query({
@@ -39,37 +34,51 @@ describe("Habits controller", () => {
 
 			expect(res.statusCode).toBe(200);
 
-			expect(res.body).toStrictEqual(
-				expectedBody({
-					habits: expect.arrayContaining([
-						expect.objectContaining({
-							_id: expect.any(String),
-							name: expect.any(String),
-							description: expect.any(String),
-							periodInDays: expect.any(Number),
-							activities: expect.arrayContaining([
-								expect.objectContaining({
-									_id: expect.any(String),
-									date: expect.any(String)
-								})
-							])
-						})
-					]),
-					groupsOfHabits: expect.arrayContaining([
-						expect.objectContaining({
-							_id: expect.any(String),
-							name: expect.any(String),
-							habitsIds: expect.arrayContaining([expect.any(String)])
-						})
-					])
-				})
-			);
+			const { habits, groupsOfHabits } = res.body.data;
+
+			expect(habits).toBeArray();
+
+			expect(groupsOfHabits).toBeArray();
+
+			for (const habit of habits) {
+				const { _id, description, periodInDays, activities } = habit;
+
+				expect(_id).toBeString();
+
+				expect(description).toBeString();
+
+				expect(periodInDays).toBeNumber();
+
+				expect(activities).toBeArray();
+
+				for (const activity of habit.activities) {
+					const { _id, date } = activity;
+
+					expect(_id).toBeString();
+
+					expect(date).toBeString();
+				}
+			}
+
+			for (const group of groupsOfHabits) {
+				const { _id, name, habitsIds } = group;
+
+				expect(_id).toBeString();
+
+				expect(name).toBeString();
+
+				expect(habitsIds).toBeArray();
+
+				for (const id of group.habitsIds) {
+					expect(id).toBeString();
+				}
+			}
 		});
 
 		it("should_return_400_for_future_date", async () => {
 			const pastDate = new Date();
 
-			pastDate.setDate(new Date().getDate() + parseInt(DAYS_FROM_TODAY!));
+			pastDate.setDate(new Date().getDate() + DAYS_FROM_TODAY);
 
 			res = await authGetRequest(`/habits`, token).query({
 				dateFrom: pastDate,
@@ -92,7 +101,7 @@ describe("Habits controller", () => {
 		it("should_return_400_for_missing_myHabits", async () => {
 			const pastDate = new Date();
 
-			pastDate.setDate(new Date().getDate() - parseInt(DAYS_FROM_TODAY!));
+			pastDate.setDate(new Date().getDate() - DAYS_FROM_TODAY);
 
 			res = await authGetRequest(`/habits`, token).query({
 				dateFrom: pastDate
@@ -145,6 +154,22 @@ describe("Habits controller", () => {
 
 		it("should_return_200_for_missing_newGroupsOfHabits", async () => {
 			res = await authPostRequest(`/habits/groupsOfHabits/update`, token);
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/:habitId/update", () => {
+		it("should_return_200_for_valid_data", async () => {
+			const updatedHabit = {
+				newName: "new name",
+				newDescription: "new description",
+				newPeriodInDays: 4
+			};
+
+			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+				updatedHabit
+			);
 
 			expect(res.statusCode).toBe(400);
 		});

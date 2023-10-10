@@ -1,17 +1,13 @@
-import * as dotenv from "dotenv";
-import * as request from "supertest";
+import { describe, expect, it } from "bun:test";
+import request, { Response } from "supertest";
 
-import { expectedBody, myAfterEach } from "./useful";
-dotenv.config({ path: ".env.test" });
+import { expectedBody } from "./useful";
+import { ENV_TESTS } from "./validate_env";
 
-const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT } = process.env;
+const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT } = ENV_TESTS;
 
 describe("Auth controller", () => {
-	let res: request.Response;
-
-	afterEach(() => {
-		myAfterEach(res);
-	});
+	let res: Response;
 
 	describe("/auth/login", () => {
 		it("should_return_200_for_valid_credentials", async () => {
@@ -27,7 +23,7 @@ describe("Auth controller", () => {
 
 		it("should_return_400_for_invalid_credentials", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				username: "wrong",
+				username: "string",
 				password: "wrong"
 			});
 

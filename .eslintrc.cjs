@@ -1,8 +1,7 @@
 module.exports = {
 	env: {
 		es2022: true,
-		node: true,
-		jest: true
+		node: true
 	},
 	extends: [
 		"eslint:recommended",
@@ -10,8 +9,7 @@ module.exports = {
 		"plugin:n/recommended",
 		"plugin:perfectionist/recommended-natural",
 		"plugin:@typescript-eslint/recommended",
-		"plugin:regexp/recommended",
-		"plugin:jest/recommended"
+		"plugin:regexp/recommended"
 	],
 	overrides: [
 		{
@@ -112,8 +110,7 @@ module.exports = {
 		"jsdoc",
 		"no-only-tests",
 		"perfectionist",
-		"regexp",
-		"jest"
+		"regexp"
 	],
 	reportUnusedDisableDirectives: true,
 	root: true,
@@ -140,7 +137,7 @@ module.exports = {
 		"n/no-unpublished-import": [
 			"error",
 			{
-				allowModules: ["supertest", "jest", "dotenv"]
+				allowModules: ["supertest", "dotenv", "chance"]
 			}
 		],
 		"object-shorthand": "error"
