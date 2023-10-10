@@ -3,7 +3,7 @@ import * as request from "supertest";
 
 dotenv.config({ path: ".env.test" });
 
-import { authGetRequest, expectedBody, myAfterEach } from "./useful";
+import { authGetRequest, authPostRequest, expectedBody, myAfterEach } from "./useful";
 
 const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY } = process.env;
 
@@ -97,6 +97,54 @@ describe("Habits controller", () => {
 			res = await authGetRequest(`/habits`, token).query({
 				dateFrom: pastDate
 			});
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/groupsOfHabits/update", () => {
+		it("should_return_200_for_valid_data", async () => {
+			const newGroupsOfHabits = [
+				{
+					_id: "1119c387193a1188daa2a113",
+					name: "test",
+					habitsIds: [
+						"1119c387193a1188daa2a113",
+						"1129c387193a1188daa2a113",
+						"1139c387193a1188daa2a113"
+					]
+				}
+			];
+
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+				newGroupsOfHabits
+			});
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it("should_return_200_for_invalid_data", async () => {
+			const newGroupsOfHabits = [
+				{
+					_id: "1119c387193a1188daa2a113",
+					name_wrong_field: "test",
+					habitsIds: [
+						"1119c387193a1188daa2a113",
+						"1129c387193a1188daa2a113",
+						"1139c387193a1188daa2a113"
+					]
+				}
+			];
+
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+				newGroupsOfHabits
+			});
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_200_for_missing_newGroupsOfHabits", async () => {
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token);
 
 			expect(res.statusCode).toBe(400);
 		});
