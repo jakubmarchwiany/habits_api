@@ -1,10 +1,12 @@
 import { beforeAll, describe, expect, it } from "bun:test";
+import { Chance } from "chance";
 import request, { Response } from "supertest";
 
 import { authGetRequest, authPostRequest, expectedBody } from "./useful";
 import { ENV_TESTS } from "./validate_env";
 
 const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY } = ENV_TESTS;
+const chance = Chance();
 
 describe("Habits controller", () => {
 	let token: string;
@@ -118,9 +120,9 @@ describe("Habits controller", () => {
 					_id: "1119c387193a1188daa2a113",
 					name: "test",
 					habitsIds: [
-						"1119c387193a1188daa2a113",
-						"1129c387193a1188daa2a113",
-						"1139c387193a1188daa2a113"
+						"1219c387193a1188daa2a113",
+						"1229c387193a1188daa2a113",
+						"1239c387193a1188daa2a113"
 					]
 				}
 			];
@@ -162,9 +164,46 @@ describe("Habits controller", () => {
 	describe("/habits/:habitId/update", () => {
 		it("should_return_200_for_valid_data", async () => {
 			const updatedHabit = {
-				newName: "new name",
-				newDescription: "new description",
-				newPeriodInDays: 4
+				newName: chance.string(),
+				newDescription: chance.string(),
+				newPeriodInDays: chance.natural({ min: 1, max: 31 })
+			};
+
+			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+				updatedHabit
+			);
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it("should_return_400_for_invalid_data", async () => {
+			const updatedHabit = {
+				newName: chance.string()
+			};
+
+			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+				updatedHabit
+			);
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_400_for_missing_newName", async () => {
+			const updatedHabit = {
+				newDescription: chance.string(),
+				newPeriodInDays: chance.natural({ min: 1, max: 31 })
+			};
+
+			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+				updatedHabit
+			);
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_400_for_missing_newPeriodInDays", async () => {
+			const updatedHabit = {
+				newName: chance.string()
 			};
 
 			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(

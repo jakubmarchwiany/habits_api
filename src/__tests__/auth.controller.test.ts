@@ -1,10 +1,12 @@
 import { describe, expect, it } from "bun:test";
+import Chance from "chance";
 import request, { Response } from "supertest";
 
 import { expectedBody } from "./useful";
 import { ENV_TESTS } from "./validate_env";
 
 const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT } = ENV_TESTS;
+const chance = Chance();
 
 describe("Auth controller", () => {
 	let res: Response;
@@ -23,8 +25,8 @@ describe("Auth controller", () => {
 
 		it("should_return_400_for_invalid_credentials", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				username: "string",
-				password: "wrong"
+				username: chance.string(),
+				password: chance.string()
 			});
 
 			expect(res.statusCode).toBe(400);
@@ -32,7 +34,7 @@ describe("Auth controller", () => {
 
 		it("should_return_400_for_missing_username", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				password: "wrong"
+				password: chance.string()
 			});
 
 			expect(res.statusCode).toBe(400);
@@ -40,7 +42,7 @@ describe("Auth controller", () => {
 
 		it("should_return_400_for_missing_password", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				username: "wrong"
+				username: chance.string()
 			});
 
 			expect(res.statusCode).toBe(400);
