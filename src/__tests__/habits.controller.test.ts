@@ -66,6 +66,19 @@ describe("Habits controller", () => {
 			);
 		});
 
+		it("should_return_400_for_future_date", async () => {
+			const pastDate = new Date();
+
+			pastDate.setDate(new Date().getDate() + parseInt(DAYS_FROM_TODAY!));
+
+			res = await authGetRequest(`/habits`, token).query({
+				dateFrom: pastDate,
+				myHabits: true
+			});
+
+			expect(res.statusCode).toBe(400);
+		});
+
 		it("should_return_400_for_missing_dateFrom", async () => {
 			res = await authGetRequest(`/habits`, token)
 				.query({
