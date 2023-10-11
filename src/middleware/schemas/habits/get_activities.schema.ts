@@ -5,7 +5,9 @@ const GetActivitiesSchema = object({
 		habitId: string().required("'habitId' wymagane")
 	}),
 	query: object({
-		dateFrom: date().required("'dateFrom' wymagane")
+		dateFrom: date()
+			.required("'dateFrom' wymagane")
+			.max(new Date(), "'dateFrom' musi być przeszłością")
 	})
 });
 
