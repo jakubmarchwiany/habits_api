@@ -9,5 +9,7 @@ export const ENV_TESTS = cleanEnv(process.env, {
 	USERNAME_CORRECT: str(),
 	PASSWORD_CORRECT: str(),
 
-	DAYS_FROM_TODAY: num()
+	DAYS_FROM_TODAY: num(),
+
+	TEST_HABIT: str()
 });

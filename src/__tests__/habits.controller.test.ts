@@ -5,7 +5,7 @@ import request, { Response } from "supertest";
 import { authGetRequest, authPostRequest, expectedBody } from "./useful";
 import { ENV_TESTS } from "./validate_env";
 
-const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY } = ENV_TESTS;
+const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY, TEST_HABIT } = ENV_TESTS;
 const chance = Chance();
 
 describe("Habits controller", () => {
@@ -80,12 +80,12 @@ describe("Habits controller", () => {
 		});
 
 		it("should_return_400_for_future_date", async () => {
-			const pastDate = new Date();
+			const futureData = new Date();
 
-			pastDate.setDate(new Date().getDate() + DAYS_FROM_TODAY);
+			futureData.setDate(new Date().getDate() + DAYS_FROM_TODAY);
 
 			res = await authGetRequest("/habits", token).query({
-				dateFrom: pastDate,
+				dateFrom: futureData,
 				myHabits: true
 			});
 
@@ -231,6 +231,50 @@ describe("Habits controller", () => {
 
 		it("should_return_400_for_invalid_id", async () => {
 			res = await authPostRequest("/habits/invalidId/delete", token);
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/:habitId/activities", () => {
+		it("should_return_200_for_valid_data", async () => {
+			const pastDate = new Date();
+
+			pastDate.setDate(new Date().getDate() - DAYS_FROM_TODAY);
+
+			res = await authGetRequest(`/habits/${TEST_HABIT}/activities`, token).query({
+				dateFrom: pastDate
+			});
+
+			expect(res.statusCode).toBe(200);
+
+			const { activities } = res.body.data;
+
+			expect(activities).toBeArray();
+
+			for (const activity of activities) {
+				const { _id, date } = activity;
+
+				expect(_id).toBeString();
+
+				expect(date).toBeString();
+			}
+		});
+
+		it("should_return_400_for_future_date", async () => {
+			const futureDate = new Date();
+
+			futureDate.setDate(new Date().getDate() + DAYS_FROM_TODAY);
+
+			res = await authGetRequest(`/habits/${TEST_HABIT}/activities`, token).query({
+				dateFrom: futureDate
+			});
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_400_for_missing_dateFrom", async () => {
+			res = await authGetRequest(`/habits/${TEST_HABIT}/activities`, token);
 
 			expect(res.statusCode).toBe(400);
 		});
