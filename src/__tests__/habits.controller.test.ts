@@ -113,49 +113,53 @@ describe("Habits controller", () => {
 		});
 	});
 
-	describe("/habits/groupsOfHabits/update", () => {
+	describe("/habits/-/create", () => {
 		it("should_return_200_for_valid_data", async () => {
-			const newGroupsOfHabits = [
-				{
-					_id: "1119c387193a1188daa2a113",
-					name: "test",
-					habitsIds: [
-						"1219c387193a1188daa2a113",
-						"1229c387193a1188daa2a113",
-						"1239c387193a1188daa2a113"
-					]
-				}
-			];
+			const newHabits = {
+				name: chance.string(),
+				description: chance.string(),
+				periodInDays: chance.natural({ min: 1, max: 31 })
+			};
 
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
-				newGroupsOfHabits
-			});
+			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
 
 			expect(res.statusCode).toBe(200);
+
+			const { habitId } = res.body.data;
+
+			expect(habitId).toBeString();
 		});
 
-		it("should_return_200_for_invalid_data", async () => {
-			const newGroupsOfHabits = [
-				{
-					_id: "1119c387193a1188daa2a113",
-					name_wrong_field: "test",
-					habitsIds: [
-						"1119c387193a1188daa2a113",
-						"1129c387193a1188daa2a113",
-						"1139c387193a1188daa2a113"
-					]
-				}
-			];
+		it("should_return_400_for_invalid_data", async () => {
+			const newHabits = {
+				wrongField: chance.string(),
+				description: chance.string(),
+				periodInDays: chance.natural({ min: 1, max: 31 })
+			};
 
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
-				newGroupsOfHabits
-			});
+			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
 
 			expect(res.statusCode).toBe(400);
 		});
 
-		it("should_return_200_for_missing_newGroupsOfHabits", async () => {
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token);
+		it("should_return_400_for_missing_name", async () => {
+			const newHabits = {
+				description: chance.string(),
+				periodInDays: chance.natural({ min: 1, max: 31 })
+			};
+
+			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_400_for_missing_periodInDays", async () => {
+			const newHabits = {
+				name: chance.string(),
+				description: chance.string()
+			};
+
+			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
 
 			expect(res.statusCode).toBe(400);
 		});
@@ -209,6 +213,54 @@ describe("Habits controller", () => {
 			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
 				updatedHabit
 			);
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/groupsOfHabits/update", () => {
+		it("should_return_200_for_valid_data", async () => {
+			const newGroupsOfHabits = [
+				{
+					_id: "1119c387193a1188daa2a113",
+					name: "test",
+					habitsIds: [
+						"1219c387193a1188daa2a113",
+						"1229c387193a1188daa2a113",
+						"1239c387193a1188daa2a113"
+					]
+				}
+			];
+
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+				newGroupsOfHabits
+			});
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it("should_return_400_for_invalid_data", async () => {
+			const newGroupsOfHabits = [
+				{
+					_id: "1119c387193a1188daa2a113",
+					name_wrong_field: "test",
+					habitsIds: [
+						"1119c387193a1188daa2a113",
+						"1129c387193a1188daa2a113",
+						"1139c387193a1188daa2a113"
+					]
+				}
+			];
+
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+				newGroupsOfHabits
+			});
+
+			expect(res.statusCode).toBe(400);
+		});
+
+		it("should_return_400_for_missing_newGroupsOfHabits", async () => {
+			res = await authPostRequest(`/habits/groupsOfHabits/update`, token);
 
 			expect(res.statusCode).toBe(400);
 		});
