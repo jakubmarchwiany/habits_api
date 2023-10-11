@@ -25,8 +25,6 @@ describe("Habits controller", () => {
 						newActivity
 					);
 
-					console.log("res.body :>> ", res.body);
-
 					expect(res.statusCode).toBe(200);
 
 					const { activityId } = res.body.data;
