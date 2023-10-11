@@ -1,4 +1,4 @@
-import { cleanEnv, num, port, str } from "envalid";
+import { cleanEnv, num, str } from "envalid";
 
 export const ENV_TESTS = cleanEnv(process.env, {
 	NODE_ENV: str({ choices: ["test"] }),
