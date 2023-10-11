@@ -12,7 +12,7 @@ describe("Auth controller", () => {
 	let res: Response;
 
 	describe("/auth/login", () => {
-		it("should_return_200_for_valid_credentials", async () => {
+		it("should_return_200_for_valid_data", async () => {
 			res = await request(API_URL).post("/auth/login").send({
 				username: USERNAME_CORRECT,
 				password: PASSWORD_CORRECT
@@ -23,7 +23,7 @@ describe("Auth controller", () => {
 			expect(res.body).toEqual(expectedBody({ token: expect.any(String) }));
 		});
 
-		it("should_return_400_for_invalid_credentials", async () => {
+		it("should_return_400_for_invalid_data", async () => {
 			res = await request(API_URL).post("/auth/login").send({
 				username: chance.string(),
 				password: chance.string()
