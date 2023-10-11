@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { Types } from "mongoose";
+import mongoose, { Types } from "mongoose";
 
 import { AuthRequest, MyResponse, authMiddleware } from "../../middleware/auth.middleware";
 import { HttpException } from "../../middleware/exceptions/http.exception";
@@ -53,6 +53,7 @@ export class ActivityController implements Controller {
 		}
 
 		const createActivityDB = await ActivityModel.create({
+			_id: new mongoose.Types.ObjectId(),
 			date: activityDate,
 			habitId
 		});
