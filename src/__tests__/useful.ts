@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 import { expect } from "bun:test";
 import request, { Request } from "supertest";
 
-const { API_URL } = process.env;
+import { ENV_TESTS } from "./validate_env";
+
+const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT } = ENV_TESTS;
 
 export const authGetRequest = (url: string, token: string): Request => {
 	return request(API_URL)
@@ -18,6 +22,15 @@ export const authPostRequest = (url: string, token: string): request.Request => 
 		.post(url)
 		.set("Authorization", `Bearer ${token}`)
 		.set("Accept-Encoding", "");
+};
+
+export const getUserToken = async (): Promise<string> => {
+	const res = await request(API_URL).post("/auth/login").send({
+		username: USERNAME_CORRECT,
+		password: PASSWORD_CORRECT
+	});
+
+	return res.body.data.token;
 };
 
 // export const myAfterEach = (res: request.Response): void => {

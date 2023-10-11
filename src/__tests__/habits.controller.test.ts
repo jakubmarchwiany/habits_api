@@ -1,11 +1,11 @@
 import { beforeAll, describe, expect, it } from "bun:test";
 import { Chance } from "chance";
-import request, { Response } from "supertest";
+import { Response } from "supertest";
 
-import { authGetRequest, authPostRequest, expectedBody } from "./useful";
+import { authGetRequest, authPostRequest, getUserToken } from "./useful";
 import { ENV_TESTS } from "./validate_env";
 
-const { API_URL, PASSWORD_CORRECT, USERNAME_CORRECT, DAYS_FROM_TODAY, TEST_HABIT } = ENV_TESTS;
+const { DAYS_FROM_TODAY, TEST_HABIT } = ENV_TESTS;
 const chance = Chance();
 
 describe("Habits controller", () => {
@@ -15,12 +15,7 @@ describe("Habits controller", () => {
 	let createdHabitId: string;
 
 	beforeAll(async () => {
-		const res = await request(API_URL).post("/auth/login").send({
-			password: PASSWORD_CORRECT,
-			username: USERNAME_CORRECT
-		});
-
-		token = res.body.data.token;
+		token = await getUserToken();
 	});
 
 	describe("/habits", () => {
