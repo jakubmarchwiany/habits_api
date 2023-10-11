@@ -70,12 +70,15 @@ export class ActivityController implements Controller {
 	): Promise<void> => {
 		const { activityId } = req.params;
 
-		const result = await ActivityModel.deleteOne({ _id: activityId });
+		try {
+			const result = await ActivityModel.deleteOne({ _id: activityId });
 
-		if (result.deletedCount === 0) {
+			if (result.deletedCount === 0) {
+				throw new Error();
+			}
+			res.send({ message: "Udało się usunąć aktywność" });
+		} catch (e) {
 			throw new HttpException(400, "Nie udało się usunąć aktywności");
 		}
-
-		res.send({ message: "Udało się usunąć aktywność" });
 	};
 }
