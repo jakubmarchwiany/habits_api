@@ -38,7 +38,7 @@ type UserData = {
 	password: string;
 	dearId: { $oid: string };
 	habits: { _id: { $oid: string }; name: string; description: string; periodInDays: number }[];
-	groupsOfHabits: { _id: { $oid: string }; name: string; habits: string[] }[];
+	groupsOfHabits: { _id: { $oid: string }; name: string; habitsIds: { $oid: string }[] }[];
 };
 
 type ActivityData = {
@@ -63,9 +63,9 @@ async function loadDataToDatabase(): Promise<void> {
 				return { _id: _id.$oid, name, description, periodInDays };
 			}),
 			groupsOfHabits: u.groupsOfHabits.map((g) => {
-				const { _id, habits, name } = g;
+				const { _id, name, habitsIds } = g;
 
-				return { _id: _id.$oid, name, habitsIds: habits };
+				return { _id: _id.$oid, name, habitsIds: habitsIds.map((h) => h.$oid) };
 			})
 		};
 	});
