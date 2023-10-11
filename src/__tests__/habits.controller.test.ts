@@ -12,6 +12,8 @@ describe("Habits controller", () => {
 	let token: string;
 	let res: Response;
 
+	let createdHabitId: string;
+
 	beforeAll(async () => {
 		const res = await request(API_URL).post("/auth/login").send({
 			password: PASSWORD_CORRECT,
@@ -128,6 +130,8 @@ describe("Habits controller", () => {
 			const { habitId } = res.body.data;
 
 			expect(habitId).toBeString();
+
+			createdHabitId = habitId;
 		});
 
 		it("should_return_400_for_invalid_data", async () => {
@@ -160,6 +164,20 @@ describe("Habits controller", () => {
 			};
 
 			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/:habitId/delete", () => {
+		it("should_return_200_for_valid_id", async () => {
+			res = await authPostRequest(`/habits/${createdHabitId}/delete`, token);
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it("should_return_400_for_invalid_id", async () => {
+			res = await authPostRequest(`/habits/invalidId/delete`, token);
 
 			expect(res.statusCode).toBe(400);
 		});
