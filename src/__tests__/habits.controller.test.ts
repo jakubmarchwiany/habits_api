@@ -29,7 +29,7 @@ describe("Habits controller", () => {
 
 			pastDate.setDate(new Date().getDate() - DAYS_FROM_TODAY);
 
-			res = await authGetRequest(`/habits`, token)
+			res = await authGetRequest("/habits", token)
 				.query({
 					dateFrom: pastDate,
 					myHabits: true
@@ -84,7 +84,7 @@ describe("Habits controller", () => {
 
 			pastDate.setDate(new Date().getDate() + DAYS_FROM_TODAY);
 
-			res = await authGetRequest(`/habits`, token).query({
+			res = await authGetRequest("/habits", token).query({
 				dateFrom: pastDate,
 				myHabits: true
 			});
@@ -93,7 +93,7 @@ describe("Habits controller", () => {
 		});
 
 		it("should_return_400_for_missing_dateFrom", async () => {
-			res = await authGetRequest(`/habits`, token)
+			res = await authGetRequest("/habits", token)
 				.query({
 					myHabits: true
 				})
@@ -107,7 +107,7 @@ describe("Habits controller", () => {
 
 			pastDate.setDate(new Date().getDate() - DAYS_FROM_TODAY);
 
-			res = await authGetRequest(`/habits`, token).query({
+			res = await authGetRequest("/habits", token).query({
 				dateFrom: pastDate
 			});
 
@@ -123,7 +123,7 @@ describe("Habits controller", () => {
 				periodInDays: chance.natural({ min: 1, max: 31 })
 			};
 
-			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
+			res = await authPostRequest("/habits/-/create", token).send(newHabits);
 
 			expect(res.statusCode).toBe(200);
 
@@ -141,7 +141,7 @@ describe("Habits controller", () => {
 				periodInDays: chance.natural({ min: 1, max: 31 })
 			};
 
-			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
+			res = await authPostRequest("/habits/-/create", token).send(newHabits);
 
 			expect(res.statusCode).toBe(400);
 		});
@@ -152,7 +152,7 @@ describe("Habits controller", () => {
 				periodInDays: chance.natural({ min: 1, max: 31 })
 			};
 
-			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
+			res = await authPostRequest("/habits/-/create", token).send(newHabits);
 
 			expect(res.statusCode).toBe(400);
 		});
@@ -163,21 +163,7 @@ describe("Habits controller", () => {
 				description: chance.string()
 			};
 
-			res = await authPostRequest(`/habits/-/create`, token).send(newHabits);
-
-			expect(res.statusCode).toBe(400);
-		});
-	});
-
-	describe("/habits/:habitId/delete", () => {
-		it("should_return_200_for_valid_id", async () => {
-			res = await authPostRequest(`/habits/${createdHabitId}/delete`, token);
-
-			expect(res.statusCode).toBe(200);
-		});
-
-		it("should_return_400_for_invalid_id", async () => {
-			res = await authPostRequest(`/habits/invalidId/delete`, token);
+			res = await authPostRequest("/habits/-/create", token).send(newHabits);
 
 			expect(res.statusCode).toBe(400);
 		});
@@ -191,7 +177,7 @@ describe("Habits controller", () => {
 				newPeriodInDays: chance.natural({ min: 1, max: 31 })
 			};
 
-			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+			res = await authPostRequest(`/habits/${createdHabitId}/update`, token).send(
 				updatedHabit
 			);
 
@@ -203,7 +189,7 @@ describe("Habits controller", () => {
 				newName: chance.string()
 			};
 
-			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+			res = await authPostRequest("/habits/64e1ec8115d01e5e7ecb21ff/update", token).send(
 				updatedHabit
 			);
 
@@ -216,7 +202,7 @@ describe("Habits controller", () => {
 				newPeriodInDays: chance.natural({ min: 1, max: 31 })
 			};
 
-			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+			res = await authPostRequest("/habits/64e1ec8115d01e5e7ecb21ff/update", token).send(
 				updatedHabit
 			);
 
@@ -228,9 +214,23 @@ describe("Habits controller", () => {
 				newName: chance.string()
 			};
 
-			res = await authPostRequest(`/habits/64e1ec8115d01e5e7ecb21ff/update`, token).send(
+			res = await authPostRequest("/habits/64e1ec8115d01e5e7ecb21ff/update", token).send(
 				updatedHabit
 			);
+
+			expect(res.statusCode).toBe(400);
+		});
+	});
+
+	describe("/habits/:habitId/delete", () => {
+		it("should_return_200_for_valid_id", async () => {
+			res = await authPostRequest(`/habits/${createdHabitId}/delete`, token);
+
+			expect(res.statusCode).toBe(200);
+		});
+
+		it("should_return_400_for_invalid_id", async () => {
+			res = await authPostRequest("/habits/invalidId/delete", token);
 
 			expect(res.statusCode).toBe(400);
 		});
@@ -250,7 +250,7 @@ describe("Habits controller", () => {
 				}
 			];
 
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+			res = await authPostRequest("/habits/groupsOfHabits/update", token).send({
 				newGroupsOfHabits
 			});
 
@@ -270,7 +270,7 @@ describe("Habits controller", () => {
 				}
 			];
 
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token).send({
+			res = await authPostRequest("/habits/groupsOfHabits/update", token).send({
 				newGroupsOfHabits
 			});
 
@@ -278,7 +278,7 @@ describe("Habits controller", () => {
 		});
 
 		it("should_return_400_for_missing_newGroupsOfHabits", async () => {
-			res = await authPostRequest(`/habits/groupsOfHabits/update`, token);
+			res = await authPostRequest("/habits/groupsOfHabits/update", token);
 
 			expect(res.statusCode).toBe(400);
 		});
