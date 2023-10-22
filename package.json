@@ -8,8 +8,8 @@
 	"license": "ISC",
 	"scripts": {
 		"dev": "NODE_ENV=development bun --watch ./src/main.ts --watch",
-		"build": "rimraf ./build && bun build --target bun ./src/main.ts --outdir=build && cp .env.production ./build/",
-		"start": "NODE_ENV=production bun main.js",
+		"build": "rimraf ./build && bun build --target bun ./src/main.ts --outdir=build && cp .env.production package.json ./build/",
+		"start:pro": "pm2 start 'NODE_ENV=production bun main.js' --name habits_api --cron-restart='0 * * * *'",
 		"restart:db": "NODE_ENV=test bun ./src/__tests__/generator/generator.ts",
 		"tests": "NODE_ENV=test bun test",
 		"tests:dev": "NODE_ENV=test bun --watch test",
