@@ -207,16 +207,18 @@ export class HabitsController implements Controller {
 		req: AuthRequest<undefined, undefined, UpdateGroupsOfHabitsData["body"], undefined>,
 		res: MyResponse<{ groupsOfHabits: GroupOfHabits[] }>
 	): Promise<void> => {
-		const { newGroupsOfHabits } = req.body;
+		let { newGroupsOfHabits } = req.body;
 		const { userId } = req.user;
+
+		newGroupsOfHabits = newGroupsOfHabits.map((g) => {
+			return { ...g, _id: new mongoose.Types.ObjectId().toString() };
+		});
 
 		const user = await UserModel.findOneAndUpdate(
 			{ _id: userId },
 			{ $set: { groupsOfHabits: newGroupsOfHabits } },
 			{ new: true }
 		).select("groupsOfHabits");
-
-		console.log(user);
 
 		if (user !== null) {
 			const { groupsOfHabits } = user;
