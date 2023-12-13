@@ -9,3 +9,5 @@ build
 
 activities.json
 users.json
+.eslintcache
+.cspellcache
