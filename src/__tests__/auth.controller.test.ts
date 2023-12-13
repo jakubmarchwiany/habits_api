@@ -14,8 +14,8 @@ describe("Auth controller", () => {
 	describe("/auth/login", () => {
 		it("should_return_200_for_valid_data", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				username: USERNAME_CORRECT,
-				password: PASSWORD_CORRECT
+				password: PASSWORD_CORRECT,
+				username: USERNAME_CORRECT
 			});
 
 			expect(res.statusCode).toBe(200);
@@ -25,8 +25,8 @@ describe("Auth controller", () => {
 
 		it("should_return_400_for_invalid_data", async () => {
 			res = await request(API_URL).post("/auth/login").send({
-				username: chance.string(),
-				password: chance.string()
+				password: chance.string(),
+				username: chance.string()
 			});
 
 			expect(res.statusCode).toBe(400);

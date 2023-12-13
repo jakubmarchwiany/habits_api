@@ -29,11 +29,11 @@ export class AuthenticationController implements Controller {
 		req: Request<undefined, undefined, LoginData["body"]>,
 		res: MyResponse<{ token: string }>
 	): Promise<void> => {
-		const { username, password } = req.body;
+		const { password, username } = req.body;
 
 		const user = await UserModel.findOne(
 			{ username },
-			{ password: 1, username: 1, dearId: 1 }
+			{ dearId: 1, password: 1, username: 1 }
 		).lean();
 
 		if (user !== null) {
@@ -41,8 +41,8 @@ export class AuthenticationController implements Controller {
 
 			if (passwordCorrect) {
 				const dataStoredInToken: DataStoredInToken = {
-					userId: user._id,
-					dearId: user.dearId
+					dearId: user.dearId,
+					userId: user._id
 				};
 
 				const token = sign(dataStoredInToken, JWT_SECRET, {
@@ -50,8 +50,8 @@ export class AuthenticationController implements Controller {
 				});
 
 				res.send({
-					message: "Udało się zalogować",
-					data: { token }
+					data: { token },
+					message: "Udało się zalogować"
 				});
 			} else {
 				throw new WrongCredentialsException();

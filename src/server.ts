@@ -9,7 +9,7 @@ import { errorMiddleware } from "./middleware/error.middleware";
 import { HttpException } from "./middleware/exceptions/http.exception";
 import { ENV } from "./utils/validate_env";
 
-const { API_PREFIX, MONGO_URL, WHITELISTED_DOMAINS, PORT } = ENV;
+const { API_PREFIX, MONGO_URL, PORT, WHITELISTED_DOMAINS } = ENV;
 
 const WHITELIST = WHITELISTED_DOMAINS ? WHITELISTED_DOMAINS.split(",") : [];
 

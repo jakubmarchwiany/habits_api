@@ -2,8 +2,8 @@ import { InferType, number, object, string } from "yup";
 
 const updateHabitSchema = object({
 	body: object({
-		newName: string().required("Body 'newName' wymagane").min(1, "Minimalna długość to 1 znak"),
 		newDescription: string().min(0),
+		newName: string().required("Body 'newName' wymagane").min(1, "Minimalna długość to 1 znak"),
 		newPeriodInDays: number()
 			.required("Body 'newPeriodInDays' wymagane")
 			.min(1, "Minimalna wartość to 1")

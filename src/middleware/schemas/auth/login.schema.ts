@@ -2,8 +2,8 @@ import { InferType, object, string } from "yup";
 
 const loginSchema = object({
 	body: object({
-		username: string().required("'username' wymagane"),
-		password: string().required("'password' wymagane")
+		password: string().required("'password' wymagane"),
+		username: string().required("'username' wymagane")
 	})
 });
 

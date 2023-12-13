@@ -77,8 +77,8 @@ export class HabitsController implements Controller {
 	private getHabits = async (
 		req: AuthRequest<undefined, undefined, undefined, GetHabitsData["query"]>,
 		res: MyResponse<{
-			habits: HabitWithActivity[];
 			groupsOfHabits: GroupOfHabits[];
+			habits: HabitWithActivity[];
 		}>
 	): Promise<void> => {
 		const { dateFrom, myHabits } = req.query;
@@ -98,8 +98,8 @@ export class HabitsController implements Controller {
 			const habitsExt = await prepareHabits(user.habits, searchFromData);
 
 			const data = {
-				habits: habitsExt,
-				groupsOfHabits: user.groupsOfHabits
+				groupsOfHabits: user.groupsOfHabits,
+				habits: habitsExt
 			};
 
 			res.send({
@@ -122,8 +122,8 @@ export class HabitsController implements Controller {
 
 		const habit: Habit = {
 			_id: habitId,
-			name,
 			description,
+			name,
 			periodInDays
 		};
 
@@ -148,8 +148,8 @@ export class HabitsController implements Controller {
 			{ _id: userId, "habits._id": habitId },
 			{
 				$set: {
-					"habits.$.name": newName,
 					"habits.$.description": newDescription,
+					"habits.$.name": newName,
 					"habits.$.periodInDays": newPeriodInDays
 				}
 			}
@@ -178,8 +178,8 @@ export class HabitsController implements Controller {
 				{ _id: userId },
 				{
 					$pull: {
-						habits: { _id: habitId },
-						"groupsOfHabits.$[].habitsIds": habitId
+						"groupsOfHabits.$[].habitsIds": habitId,
+						habits: { _id: habitId }
 					}
 				},
 				{ session }
@@ -249,7 +249,7 @@ export class HabitsController implements Controller {
 		searchData.setHours(12, 0, 0, 0);
 
 		const activities = await ActivityModel.find(
-			{ habitId, date: { $gte: searchData } },
+			{ date: { $gte: searchData }, habitId },
 			{ _id: 1, date: 1 }
 		)
 			.sort({ date: 1 })

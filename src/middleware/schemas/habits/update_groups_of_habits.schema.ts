@@ -2,8 +2,8 @@ import { InferType, array, object, string } from "yup";
 
 const GroupsOfHabitsSchema = object().shape({
 	_id: string().required(),
-	name: string().required(),
-	habitsIds: array().of(string().required()).required()
+	habitsIds: array().of(string().required()).required(),
+	name: string().required()
 });
 
 const updateGroupsOfHabitsSchema = object({

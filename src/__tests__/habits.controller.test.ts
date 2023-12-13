@@ -34,14 +34,14 @@ describe("Habits controller", () => {
 
 				expect(res.statusCode).toBe(200);
 
-				const { habits, groupsOfHabits } = res.body.data;
+				const { groupsOfHabits, habits } = res.body.data;
 
 				expect(habits).toBeArray();
 
 				expect(groupsOfHabits).toBeArray();
 
 				for (const habit of habits) {
-					const { _id, description, periodInDays, activities } = habit;
+					const { _id, activities, description, periodInDays } = habit;
 
 					expect(_id).toBeString();
 
@@ -61,7 +61,7 @@ describe("Habits controller", () => {
 				}
 
 				for (const group of groupsOfHabits) {
-					const { _id, name, habitsIds } = group;
+					const { _id, habitsIds, name } = group;
 
 					expect(_id).toBeString();
 
@@ -115,9 +115,9 @@ describe("Habits controller", () => {
 			describe("/create", () => {
 				it("should_return_200_for_valid_data", async () => {
 					const newHabits = {
-						name: chance.string(),
 						description: chance.string(),
-						periodInDays: chance.natural({ min: 1, max: 31 })
+						name: chance.string(),
+						periodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest("/habits/-/create", token).send(newHabits);
@@ -133,9 +133,9 @@ describe("Habits controller", () => {
 
 				it("should_return_400_for_invalid_data", async () => {
 					const newHabits = {
-						wrongField: chance.string(),
 						description: chance.string(),
-						periodInDays: chance.natural({ min: 1, max: 31 })
+						periodInDays: chance.natural({ max: 31, min: 1 }),
+						wrongField: chance.string()
 					};
 
 					res = await authPostRequest("/habits/-/create", token).send(newHabits);
@@ -146,7 +146,7 @@ describe("Habits controller", () => {
 				it("should_return_400_for_missing_name", async () => {
 					const newHabits = {
 						description: chance.string(),
-						periodInDays: chance.natural({ min: 1, max: 31 })
+						periodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest("/habits/-/create", token).send(newHabits);
@@ -156,8 +156,8 @@ describe("Habits controller", () => {
 
 				it("should_return_400_for_missing_periodInDays", async () => {
 					const newHabits = {
-						name: chance.string(),
-						description: chance.string()
+						description: chance.string(),
+						name: chance.string()
 					};
 
 					res = await authPostRequest("/habits/-/create", token).send(newHabits);
@@ -171,9 +171,9 @@ describe("Habits controller", () => {
 			describe("/update", () => {
 				it("should_return_200_for_valid_data", async () => {
 					const updatedHabit = {
-						newName: chance.string(),
 						newDescription: chance.string(),
-						newPeriodInDays: chance.natural({ min: 1, max: 31 })
+						newName: chance.string(),
+						newPeriodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest(`/habits/${createdHabitId}/update`, token).send(
@@ -199,7 +199,7 @@ describe("Habits controller", () => {
 				it("should_return_400_for_missing_newName", async () => {
 					const updatedHabit = {
 						newDescription: chance.string(),
-						newPeriodInDays: chance.natural({ min: 1, max: 31 })
+						newPeriodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest(
@@ -289,12 +289,12 @@ describe("Habits controller", () => {
 					const newGroupsOfHabits = [
 						{
 							_id: "1119c387193a1188daa2a113",
-							name: "test",
 							habitsIds: [
 								"1219c387193a1188daa2a113",
 								"1229c387193a1188daa2a113",
 								"1239c387193a1188daa2a113"
-							]
+							],
+							name: "test"
 						}
 					];
 
@@ -309,12 +309,12 @@ describe("Habits controller", () => {
 					const newGroupsOfHabits = [
 						{
 							_id: "1119c387193a1188daa2a113",
-							name_wrong_field: "test",
 							habitsIds: [
 								"1119c387193a1188daa2a113",
 								"1129c387193a1188daa2a113",
 								"1139c387193a1188daa2a113"
-							]
+							],
+							name_wrong_field: "test"
 						}
 					];
 

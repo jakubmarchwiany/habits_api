@@ -50,7 +50,6 @@ module.exports = {
 						allowConstantLoopConditions: true
 					}
 				],
-				"@typescript-eslint/prefer-for-of": "off",
 				"@typescript-eslint/no-unused-vars": "off",
 				"@typescript-eslint/padding-line-between-statements": [
 					"error",
@@ -65,6 +64,7 @@ module.exports = {
 					{ blankLine: "always", next: "*", prev: "expression" },
 					{ blankLine: "any", next: "break", prev: "expression" }
 				],
+				"@typescript-eslint/prefer-for-of": "off",
 				"@typescript-eslint/prefer-nullish-coalescing": [
 					"error",
 					{ ignorePrimitives: true }
@@ -94,12 +94,13 @@ module.exports = {
 			files: ["**/*.test.ts"],
 			// excludedFiles: ["___tests___"],
 			rules: {
+				"@typescript-eslint/no-explicit-any": "off",
+
+				"@typescript-eslint/no-non-null-assertion": "off",
 				// These on-by-default rules aren't useful in test files.
 				"@typescript-eslint/no-unsafe-assignment": "off",
 				"@typescript-eslint/no-unsafe-call": "off",
-				"@typescript-eslint/no-unsafe-member-access": "off",
-				"@typescript-eslint/no-explicit-any": "off",
-				"@typescript-eslint/no-non-null-assertion": "off"
+				"@typescript-eslint/no-unsafe-member-access": "off"
 			}
 		}
 	],
@@ -110,7 +111,10 @@ module.exports = {
 		"jsdoc",
 		"no-only-tests",
 		"perfectionist",
-		"regexp"
+		"regexp",
+		"sort-keys-fix",
+		"typescript-sort-keys",
+		"sort-destructure-keys"
 	],
 	reportUnusedDisableDirectives: true,
 	root: true,
@@ -124,22 +128,27 @@ module.exports = {
 		],
 
 		"eslint-comments/disable-enable-pair": "off",
-		// These on-by-default rules don't work well for this repo and we like them off.
-		"no-case-declarations": "off",
-		"no-constant-condition": "off",
-		"no-inner-declarations": "off",
 
-		"no-mixed-spaces-and-tabs": "off",
-		"no-only-tests/no-only-tests": "error",
-		"perfectionist/sort-classes": "off",
-		"perfectionist/sort-objects": "off",
-		"perfectionist/sort-object-types": "off",
 		"n/no-unpublished-import": [
 			"error",
 			{
 				allowModules: ["supertest", "dotenv", "chance"]
 			}
 		],
-		"object-shorthand": "error"
+		// These on-by-default rules don't work well for this repo and we like them off.
+		"no-case-declarations": "off",
+		"no-constant-condition": "off",
+
+		"no-inner-declarations": "off",
+		"no-mixed-spaces-and-tabs": "off",
+		"no-only-tests/no-only-tests": "error",
+		"object-shorthand": "error",
+		"perfectionist/sort-classes": "off",
+		"perfectionist/sort-object-types": "off",
+		"perfectionist/sort-objects": "off",
+		"sort-destructure-keys/sort-destructure-keys": 2,
+		"sort-keys-fix/sort-keys-fix": "error",
+		"typescript-sort-keys/interface": "error",
+		"typescript-sort-keys/string-enum": "error"
 	}
 };

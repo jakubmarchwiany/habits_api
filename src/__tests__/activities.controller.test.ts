@@ -19,7 +19,7 @@ describe("Habits controller", () => {
 		describe("/-", () => {
 			describe("/create", () => {
 				it("should_return_200_for_valid_data", async () => {
-					const newActivity = { habitId: TEST_HABIT, date: new Date() };
+					const newActivity = { date: new Date(), habitId: TEST_HABIT };
 
 					res = await authPostRequest(`/habits/-/activities/-/create`, token).send(
 						newActivity
@@ -33,7 +33,7 @@ describe("Habits controller", () => {
 				});
 
 				it("should_return_400_for_same_date_activity", async () => {
-					const newActivity = { habitId: TEST_HABIT, date: new Date() };
+					const newActivity = { date: new Date(), habitId: TEST_HABIT };
 
 					res = await authPostRequest(`/habits/-/activities/-/create`, token).send(
 						newActivity

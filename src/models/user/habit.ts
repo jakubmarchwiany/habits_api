@@ -4,8 +4,8 @@ import { Activity } from "../activity/activity";
 
 const habitSchema = new Schema({
 	_id: { required: true, type: SchemaTypes.ObjectId },
-	name: { required: true, type: String },
 	description: { type: String },
+	name: { required: true, type: String },
 	periodInDays: { required: true, type: Number }
 });
 

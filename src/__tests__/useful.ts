@@ -26,8 +26,8 @@ export const authPostRequest = (url: string, token: string): request.Request => 
 
 export const getUserToken = async (): Promise<string> => {
 	const res = await request(API_URL).post("/auth/login").send({
-		username: USERNAME_CORRECT,
-		password: PASSWORD_CORRECT
+		password: PASSWORD_CORRECT,
+		username: USERNAME_CORRECT
 	});
 
 	return res.body.data.token;

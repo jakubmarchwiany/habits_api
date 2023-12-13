@@ -34,11 +34,11 @@ async function clearDataFromDatabase(): Promise<void> {
 
 type UserData = {
 	_id: { $oid: string };
-	username: string;
-	password: string;
 	dearId: { $oid: string };
-	habits: { _id: { $oid: string }; name: string; description: string; periodInDays: number }[];
-	groupsOfHabits: { _id: { $oid: string }; name: string; habitsIds: { $oid: string }[] }[];
+	groupsOfHabits: { _id: { $oid: string }; habitsIds: { $oid: string }[]; name: string }[];
+	habits: { _id: { $oid: string }; description: string; name: string; periodInDays: number }[];
+	password: string;
+	username: string;
 };
 
 type ActivityData = {
@@ -54,19 +54,19 @@ async function loadDataToDatabase(): Promise<void> {
 	const users = usersData.map((u) => {
 		return {
 			_id: u._id.$oid,
-			username: u.username,
-			password: u.password,
 			dearId: u.dearId.$oid,
+			groupsOfHabits: u.groupsOfHabits.map((g) => {
+				const { _id, habitsIds, name } = g;
+
+				return { _id: _id.$oid, habitsIds: habitsIds.map((h) => h.$oid), name };
+			}),
 			habits: u.habits.map((h) => {
 				const { _id, description, name, periodInDays } = h;
 
-				return { _id: _id.$oid, name, description, periodInDays };
+				return { _id: _id.$oid, description, name, periodInDays };
 			}),
-			groupsOfHabits: u.groupsOfHabits.map((g) => {
-				const { _id, name, habitsIds } = g;
-
-				return { _id: _id.$oid, name, habitsIds: habitsIds.map((h) => h.$oid) };
-			})
+			password: u.password,
+			username: u.username
 		};
 	});
 
