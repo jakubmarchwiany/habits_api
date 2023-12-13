@@ -5,6 +5,7 @@ import { Activity } from "../activity/activity";
 const habitSchema = new Schema({
 	_id: { required: true, type: SchemaTypes.ObjectId },
 	description: { type: String },
+	emoji: { required: true, type: String },
 	name: { required: true, type: String },
 	periodInDays: { required: true, type: Number }
 });

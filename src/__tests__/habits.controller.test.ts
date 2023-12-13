@@ -116,6 +116,7 @@ describe("Habits controller", () => {
 				it("should_return_200_for_valid_data", async () => {
 					const newHabits = {
 						description: chance.string(),
+						emoji: "🎨",
 						name: chance.string(),
 						periodInDays: chance.natural({ max: 31, min: 1 })
 					};
@@ -134,6 +135,7 @@ describe("Habits controller", () => {
 				it("should_return_400_for_invalid_data", async () => {
 					const newHabits = {
 						description: chance.string(),
+						emoji: "🎨",
 						periodInDays: chance.natural({ max: 31, min: 1 }),
 						wrongField: chance.string()
 					};
@@ -146,6 +148,7 @@ describe("Habits controller", () => {
 				it("should_return_400_for_missing_name", async () => {
 					const newHabits = {
 						description: chance.string(),
+						emoji: "🎨",
 						periodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
@@ -157,7 +160,20 @@ describe("Habits controller", () => {
 				it("should_return_400_for_missing_periodInDays", async () => {
 					const newHabits = {
 						description: chance.string(),
+						emoji: "🎨",
 						name: chance.string()
+					};
+
+					res = await authPostRequest("/habits/-/create", token).send(newHabits);
+
+					expect(res.statusCode).toBe(400);
+				});
+
+				it("should_return_400_for_missing_emoji", async () => {
+					const newHabits = {
+						description: chance.string(),
+						name: chance.string(),
+						periodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest("/habits/-/create", token).send(newHabits);

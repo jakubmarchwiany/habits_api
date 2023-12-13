@@ -115,7 +115,7 @@ export class HabitsController implements Controller {
 		req: AuthRequest<undefined, undefined, CreateHabitData["body"], undefined>,
 		res: MyResponse<{ habitId: Types.ObjectId }>
 	): Promise<void> => {
-		const { description, name, periodInDays } = req.body;
+		const { description, emoji, name, periodInDays } = req.body;
 		const { userId } = req.user;
 
 		const habitId = new mongoose.Types.ObjectId();
@@ -123,6 +123,7 @@ export class HabitsController implements Controller {
 		const habit: Habit = {
 			_id: habitId,
 			description,
+			emoji,
 			name,
 			periodInDays
 		};

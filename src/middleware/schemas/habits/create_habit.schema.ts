@@ -3,6 +3,7 @@ import { InferType, number, object, string } from "yup";
 const createHabitSchema = object({
 	body: object({
 		description: string(),
+		emoji: string().required("Body 'emoji' wymagane"),
 		name: string().required("Body 'name' wymagane").min(1, "Minimalna długość to 1 znak"),
 		periodInDays: number()
 			.required("Body 'periodInDays' wymagane")
