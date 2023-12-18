@@ -188,6 +188,7 @@ describe("Habits controller", () => {
 				it("should_return_200_for_valid_data", async () => {
 					const updatedHabit = {
 						newDescription: chance.string(),
+						newEmoji: "🧖",
 						newName: chance.string(),
 						newPeriodInDays: chance.natural({ max: 31, min: 1 })
 					};
@@ -229,6 +230,20 @@ describe("Habits controller", () => {
 				it("should_return_400_for_missing_newPeriodInDays", async () => {
 					const updatedHabit = {
 						newName: chance.string()
+					};
+
+					res = await authPostRequest(
+						"/habits/64e1ec8115d01e5e7ecb21ff/update",
+						token
+					).send(updatedHabit);
+
+					expect(res.statusCode).toBe(400);
+				});
+
+				it("should_return_400_for_missing_newEmoji", async () => {
+					const updatedHabit = {
+						newName: chance.string(),
+						newPeriodInDays: chance.natural({ max: 31, min: 1 })
 					};
 
 					res = await authPostRequest(

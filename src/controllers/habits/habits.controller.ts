@@ -141,7 +141,7 @@ export class HabitsController implements Controller {
 		req: AuthRequest<UpdateHabitData["params"], undefined, UpdateHabitData["body"], undefined>,
 		res: MyResponse<undefined>
 	): Promise<void> => {
-		const { newDescription, newName, newPeriodInDays } = req.body;
+		const { newDescription, newEmoji, newName, newPeriodInDays } = req.body;
 		const { userId } = req.user;
 		const { habitId } = req.params;
 
@@ -150,6 +150,7 @@ export class HabitsController implements Controller {
 			{
 				$set: {
 					"habits.$.description": newDescription,
+					"habits.$.emoji": newEmoji,
 					"habits.$.name": newName,
 					"habits.$.periodInDays": newPeriodInDays
 				}
